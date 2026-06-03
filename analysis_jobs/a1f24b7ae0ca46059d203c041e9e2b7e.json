@@ -1,0 +1,1 @@
+{"status": "running", "progress": 40, "message": "Computing model summaries", "modules": ["phonetic_normalization", "language_aware_normalization", "switch_point_encoding"], "models": ["muril"], "dataset_name": "hinglish", "uploaded_filename": "hinglish.csv", "batch_size": 32}

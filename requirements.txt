@@ -1,0 +1,36 @@
+# Hinglish Preprocessing Toolkit — Dependencies
+# ================================================
+# Core (always required)
+nltk>=3.8
+pandas>=2.0
+
+# Web preview server
+Flask>=2.0
+flask-cors>=3.0
+
+# Required for:
+#   balanced_tokenizn.py          (transliterate_unknown=True)
+#   transliteration.py
+#   script_unification.py
+indic-transliteration>=2.3
+
+# Required for:
+#   context_aware_sentencepiece_dropout.py
+transformers>=4.30
+sentencepiece>=0.1.99
+
+# FastAPI analysis backend
+fastapi>=0.95
+uvicorn[standard]>=0.22
+python-multipart>=0.0.6
+
+# Embedding & ML for Stage 4 analysis
+# NOTE: sentence-transformers requires PyTorch. If pip install sentence-transformers fails,
+# install separately: pip install sentence-transformers torch
+sentence-transformers>=2.2
+scikit-learn>=1.2
+scipy>=1.10
+
+# ── One-time NLTK corpus setup ─────────────────────────────────────────────
+# After installing, run once:
+#   python -c "import nltk; nltk.download('words')"
