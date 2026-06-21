@@ -1,0 +1,31 @@
+{
+  "pipeline_config": {
+    "experiment_name": "experiment",
+    "enabled": {
+      "phonetic_normalization": false,
+      "language_aware_normalization": true,
+      "script_unification": false,
+      "transliteration": false,
+      "balanced_tokenization": false,
+      "context_aware_subword_sampling": true,
+      "language_identification_tagging": true,
+      "switch_point_encoding": false,
+      "code_switch_augmentation": false
+    },
+    "pipeline_order": [
+      "phonetic_normalization",
+      "language_aware_normalization",
+      "script_unification",
+      "transliteration",
+      "balanced_tokenization",
+      "language_identification_tagging",
+      "switch_point_encoding",
+      "context_aware_subword_sampling"
+    ],
+    "module_configs": {},
+    "output_mode": "model",
+    "enable_analysis": false,
+    "allow_conflicts": false,
+    "random_seed": 42
+  }
+}

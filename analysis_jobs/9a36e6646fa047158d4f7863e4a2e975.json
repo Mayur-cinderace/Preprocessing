@@ -1,0 +1,1 @@
+{"status": "failed", "progress": 20, "message": "Initializing evaluator", "modules": [], "dataset_name": "upload_9a36e6646fa047158d4f7863e4a2e975", "uploaded_filename": "upload_9a36e6646fa047158d4f7863e4a2e975.csv", "batch_size": 32, "include_spac": false, "error": "'processed_text'", "pipeline_config": null}

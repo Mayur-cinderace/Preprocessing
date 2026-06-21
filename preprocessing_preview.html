@@ -4,21 +4,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- No hardcoded endpoints. API_BASE and PROC_BASE are derived from
+       window.location.origin so the frontend works at any host/port.
+       Override by setting window.HINGLISH_API_BASE / HINGLISH_PROC_BASE
+       before the script runs (e.g. via a server-rendered config block). -->
   <title>Hinglish Preprocessing Toolkit</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&family=Inter:wght@300;400;500;600&display=swap"
     rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
-    onerror="(function(){var s=document.createElement('script');s.src='chart.umd.min.js';s.async=false;document.head.appendChild(s)})()"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
   <style>
+    /* ── Design tokens ─────────────────────────────────────────────────── */
     :root {
       --bg: #0c0e14;
       --bg2: #131620;
       --bg3: #1a1e2e;
       --border: rgba(255, 255, 255, 0.07);
-      --border-bright: rgba(255, 255, 255, 0.15);
+      --border-hi: rgba(255, 255, 255, 0.15);
       --ink: #e8eaf0;
       --ink2: #8b90a8;
       --ink3: #555a72;
@@ -31,6 +35,9 @@
       --purple: #a78bfa;
       --r: 12px;
       --r-sm: 6px;
+      --font-mono: 'Space Mono', monospace;
+      --font-display: 'Syne', sans-serif;
+      --font-body: 'Inter', sans-serif;
     }
 
     *,
@@ -48,13 +55,23 @@
     body {
       background: var(--bg);
       color: var(--ink);
-      font-family: 'Inter', sans-serif;
-      font-weight: 400;
+      font-family: var(--font-body);
       min-height: 100vh;
       line-height: 1.6;
     }
 
-    /* ── Scrollbar ── */
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
+
+    /* Scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -65,14 +82,21 @@
     }
 
     ::-webkit-scrollbar-thumb {
-      background: var(--border-bright);
+      background: var(--border-hi);
       border-radius: 3px;
     }
 
-    /* ── Header ── */
+    /* Focus — WCAG AA visible */
+    :focus-visible {
+      outline: 2px solid var(--teal);
+      outline-offset: 2px;
+      border-radius: 3px;
+    }
+
+    /* ── Header ────────────────────────────────────────────────────────── */
     .site-header {
       border-bottom: 1px solid var(--border);
-      padding: 20px 32px;
+      padding: 18px 32px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -91,13 +115,14 @@
     }
 
     .brand-icon {
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       background: var(--teal);
       border-radius: var(--r-sm);
       display: grid;
       place-items: center;
       flex-shrink: 0;
+      aria-hidden: true;
     }
 
     .brand-icon svg {
@@ -105,9 +130,9 @@
     }
 
     .brand-name {
-      font-family: 'Syne', sans-serif;
+      font-family: var(--font-display);
       font-weight: 800;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       letter-spacing: -0.02em;
     }
 
@@ -116,16 +141,52 @@
     }
 
     .header-badge {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
       background: var(--teal-dim);
       border: 1px solid rgba(0, 212, 170, 0.25);
       color: var(--teal);
-      padding: 3px 8px;
+      padding: 2px 8px;
       border-radius: 20px;
     }
 
-    /* ── Nav tabs ── */
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* System info pill */
+    .sys-info-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--ink3);
+      background: var(--bg2);
+    }
+
+    .sys-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--ink3);
+      flex-shrink: 0;
+    }
+
+    .sys-dot.ok {
+      background: var(--teal);
+    }
+
+    .sys-dot.warn {
+      background: var(--amber);
+    }
+
+    /* ── Nav tabs ──────────────────────────────────────────────────────── */
     .nav-tabs {
       display: flex;
       gap: 4px;
@@ -133,6 +194,7 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 3px;
+      role: tablist;
     }
 
     .nav-tab {
@@ -144,22 +206,23 @@
       border: none;
       background: transparent;
       color: var(--ink2);
-      transition: all 0.2s;
+      transition: background 0.15s, color 0.15s;
       white-space: nowrap;
+      font-family: var(--font-body);
     }
 
-    .nav-tab.active {
+    .nav-tab[aria-selected="true"] {
       background: var(--teal);
       color: #0c0e14;
       font-weight: 600;
     }
 
-    .nav-tab:not(.active):hover {
+    .nav-tab:not([aria-selected="true"]):hover {
       background: var(--border);
       color: var(--ink);
     }
 
-    /* ── Layout ── */
+    /* ── Layout ─────────────────────────────────────────────────────────  */
     .main-content {
       max-width: 1280px;
       margin: 0 auto;
@@ -169,40 +232,6 @@
       gap: 24px;
     }
 
-    /* ── Cards ── */
-    .card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 20px;
-    }
-
-    .card-title {
-      font-family: 'Syne', sans-serif;
-      font-weight: 600;
-      font-size: 0.95rem;
-      letter-spacing: -0.01em;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .card-title .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--teal);
-      flex-shrink: 0;
-    }
-
-    .card-sub {
-      font-size: 0.78rem;
-      color: var(--ink2);
-      margin-bottom: 16px;
-    }
-
-    /* ── Two-col grid ── */
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -235,10 +264,48 @@
 
       .site-header {
         padding: 14px 16px;
+        flex-wrap: wrap;
+      }
+
+      .sys-info-pill {
+        display: none;
       }
     }
 
-    /* ── Textarea / input ── */
+    /* ── Cards ──────────────────────────────────────────────────────────  */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 20px;
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--teal);
+      flex-shrink: 0;
+    }
+
+    .card-sub {
+      font-size: 0.78rem;
+      color: var(--ink2);
+      margin-bottom: 16px;
+    }
+
+    /* ── Textarea ────────────────────────────────────────────────────────  */
     textarea,
     input[type="number"],
     input[type="text"] {
@@ -248,11 +315,11 @@
       color: var(--ink);
       padding: 10px 12px;
       font-size: 0.82rem;
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       width: 100%;
       resize: vertical;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.15s;
     }
 
     textarea:focus,
@@ -260,27 +327,31 @@
       border-color: var(--teal);
     }
 
-    /* ── Output panel ── */
+    /* ── Output panel ────────────────────────────────────────────────────  */
     .output-panel {
       background: var(--bg3);
       border: 1px solid var(--border);
       border-radius: var(--r-sm);
       padding: 12px;
       min-height: 96px;
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.8rem;
       line-height: 1.8;
-      word-break: break-all;
+      word-break: break-word;
     }
 
-    /* ── Language chips ── */
+    .output-panel[aria-live] {}
+
+    /* announce updates to screen readers */
+
+    /* Language / switch chips */
     .chip {
       display: inline-block;
       padding: 1px 7px;
       border-radius: 4px;
       font-size: 0.72rem;
       font-weight: 700;
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       margin: 1px;
     }
 
@@ -307,9 +378,10 @@
       color: #fb7185;
       border: 1px solid rgba(244, 63, 94, 0.25);
       font-size: 0.65rem;
+      /* VISUALIZATION ONLY — never sent to model */
     }
 
-    /* ── Module toggles ── */
+    /* ── Module toggles ─────────────────────────────────────────────────  */
     .module-row {
       display: flex;
       align-items: center;
@@ -317,18 +389,23 @@
       padding: 12px 14px;
       border: 1px solid var(--border);
       border-radius: var(--r-sm);
-      transition: border-color 0.2s, background 0.2s;
+      transition: border-color 0.15s, background 0.15s;
       cursor: pointer;
     }
 
     .module-row:hover {
-      border-color: var(--border-bright);
+      border-color: var(--border-hi);
       background: var(--bg3);
     }
 
     .module-row.active {
       border-color: rgba(0, 212, 170, 0.3);
       background: var(--teal-dim2);
+    }
+
+    .module-row.conflict {
+      border-color: rgba(244, 63, 94, 0.4);
+      background: rgba(244, 63, 94, 0.05);
     }
 
     .module-info {
@@ -351,7 +428,7 @@
     .module-tag {
       font-size: 0.6rem;
       font-weight: 700;
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       padding: 2px 6px;
       border-radius: 3px;
       background: var(--bg3);
@@ -368,12 +445,12 @@
       background: var(--bg3);
       border: 1px solid var(--border);
       position: relative;
-      transition: background 0.2s, border-color 0.2s;
+      transition: background 0.15s, border-color 0.15s;
       flex-shrink: 0;
       cursor: pointer;
     }
 
-    .toggle.on {
+    .toggle[aria-checked="true"] {
       background: var(--teal);
       border-color: var(--teal);
     }
@@ -386,26 +463,32 @@
       height: 15px;
       border-radius: 50%;
       background: #fff;
-      transition: left 0.18s;
+      transition: left 0.15s;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      pointer-events: none;
     }
 
-    .toggle.on .toggle-knob {
+    .toggle[aria-checked="true"] .toggle-knob {
       left: 19px;
     }
 
-    /* ── Buttons ── */
+    /* ── Buttons ─────────────────────────────────────────────────────────  */
     .btn {
       display: inline-flex;
       align-items: center;
       gap: 7px;
       border: none;
       cursor: pointer;
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-weight: 600;
       border-radius: var(--r-sm);
-      transition: all 0.18s;
+      transition: all 0.15s;
       white-space: nowrap;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
     }
 
     .btn-primary {
@@ -415,13 +498,8 @@
       font-size: 0.82rem;
     }
 
-    .btn-primary:hover {
+    .btn-primary:not(:disabled):hover {
       background: #00bfa0;
-    }
-
-    .btn-primary:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
     }
 
     .btn-ghost {
@@ -432,8 +510,8 @@
       font-size: 0.78rem;
     }
 
-    .btn-ghost:hover {
-      border-color: var(--border-bright);
+    .btn-ghost:not(:disabled):hover {
+      border-color: var(--border-hi);
       color: var(--ink);
     }
 
@@ -445,11 +523,11 @@
       font-size: 0.82rem;
     }
 
-    .btn-amber:hover {
+    .btn-amber:not(:disabled):hover {
       background: rgba(245, 158, 11, 0.25);
     }
 
-    /* ── Progress bar ── */
+    /* ── Progress ────────────────────────────────────────────────────────  */
     .progress-wrap {
       background: var(--bg3);
       border: 1px solid var(--border);
@@ -462,11 +540,11 @@
       height: 100%;
       background: linear-gradient(90deg, var(--teal), #00a3ff);
       border-radius: 99px;
-      transition: width 0.5s ease;
+      transition: width 0.4s ease;
       width: 0%;
     }
 
-    /* ── Stat cards ── */
+    /* ── Stat cards ─────────────────────────────────────────────────────  */
     .stat-card {
       background: var(--bg3);
       border: 1px solid var(--border);
@@ -477,7 +555,7 @@
     .stat-label {
       font-size: 0.68rem;
       font-weight: 600;
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       color: var(--ink3);
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -485,7 +563,7 @@
     }
 
     .stat-value {
-      font-family: 'Syne', sans-serif;
+      font-family: var(--font-display);
       font-weight: 800;
       font-size: 1.5rem;
       letter-spacing: -0.03em;
@@ -498,7 +576,7 @@
       margin-top: 2px;
     }
 
-    /* ── Chart wrapper ── */
+    /* ── Chart wrapper ───────────────────────────────────────────────────  */
     .chart-wrap {
       background: var(--bg3);
       border: 1px solid var(--border);
@@ -507,7 +585,7 @@
     }
 
     .chart-wrap h4 {
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       font-weight: 700;
       color: var(--ink2);
@@ -516,7 +594,7 @@
       margin-bottom: 10px;
     }
 
-    /* ── Schema result ── */
+    /* ── Schema result ───────────────────────────────────────────────────  */
     .schema-result {
       margin-top: 10px;
       padding: 10px 12px;
@@ -538,9 +616,9 @@
       color: #fda4af;
     }
 
-    /* ── Code block ── */
+    /* ── Code block ──────────────────────────────────────────────────────  */
     .code-block {
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.74rem;
       background: var(--bg3);
       border: 1px solid var(--border);
@@ -552,7 +630,7 @@
       white-space: pre;
     }
 
-    /* ── Metric sections ── */
+    /* ── Metric sections ─────────────────────────────────────────────────  */
     .metric-section {
       border: 1px solid var(--border);
       border-radius: var(--r-sm);
@@ -570,7 +648,7 @@
     }
 
     .metric-section-title {
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.7rem;
       font-weight: 700;
       color: var(--teal);
@@ -580,7 +658,7 @@
 
     .metric-section-badge {
       font-size: 0.62rem;
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       padding: 2px 7px;
       border-radius: 20px;
       background: var(--teal-dim);
@@ -592,7 +670,41 @@
       padding: 14px;
     }
 
-    /* ── Model checkboxes ── */
+    /* Tooltip */
+    [data-tooltip] {
+      position: relative;
+      cursor: help;
+    }
+
+    [data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg3);
+      border: 1px solid var(--border-hi);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 0.72rem;
+      padding: 6px 10px;
+      border-radius: var(--r-sm);
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 200;
+      max-width: 260px;
+      white-space: normal;
+      text-align: center;
+    }
+
+    [data-tooltip]:hover::after,
+    [data-tooltip]:focus::after {
+      opacity: 1;
+    }
+
+    /* ── Model pills ─────────────────────────────────────────────────────  */
     .model-pill {
       display: inline-flex;
       align-items: center;
@@ -604,7 +716,7 @@
       cursor: pointer;
       font-size: 0.78rem;
       color: var(--ink2);
-      transition: all 0.18s;
+      transition: all 0.15s;
     }
 
     .model-pill:has(input:checked) {
@@ -617,16 +729,88 @@
       accent-color: var(--teal);
     }
 
-    /* ── Divider ── */
-    .divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 6px 0;
+    /* ── Validation banner ───────────────────────────────────────────────  */
+    .validation-banner {
+      display: none;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(244, 63, 94, 0.07);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      border-radius: var(--r-sm);
+      font-size: 0.78rem;
+      color: #fda4af;
+      margin-bottom: 12px;
     }
 
-    /* ── Status text ── */
+    .validation-banner.visible {
+      display: flex;
+    }
+
+    .validation-banner svg {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* ── Novel badge ─────────────────────────────────────────────────────  */
+    .novel-badge {
+      font-size: 0.6rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(167, 139, 250, 0.15);
+      border: 1px solid rgba(167, 139, 250, 0.3);
+      color: var(--purple);
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+
+    /* ── Tab panel visibility ────────────────────────────────────────────  */
+    [role="tabpanel"] {
+      display: none;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    [role="tabpanel"].active {
+      display: flex;
+    }
+
+    /* ── Upload label ────────────────────────────────────────────────────  */
+    .upload-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      font-size: 0.78rem;
+      color: var(--ink2);
+      background: var(--bg3);
+      transition: all 0.15s;
+    }
+
+    .upload-label:hover {
+      border-color: var(--border-hi);
+      color: var(--ink);
+    }
+
+    /* SPRC row */
+    .spac-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      margin-top: 10px;
+    }
+
+    /* Status text */
     .status-text {
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.72rem;
       color: var(--ink2);
     }
@@ -643,9 +827,9 @@
       color: #6ee7cf;
     }
 
-    /* ── Raw JSON pre ── */
+    /* Raw JSON */
     .raw-json {
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       background: var(--bg);
       border: 1px solid var(--border);
@@ -658,69 +842,124 @@
       margin-top: 12px;
     }
 
-    /* ── Novel score callout ── */
-    .novel-badge {
-      font-size: 0.6rem;
-      font-family: 'Space Mono', monospace;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 3px;
-      background: rgba(167, 139, 250, 0.15);
-      border: 1px solid rgba(167, 139, 250, 0.3);
-      color: var(--purple);
-      vertical-align: middle;
-      margin-left: 6px;
-    }
-
-    /* ── Tabs panel visibility ── */
-    .tab-panel {
-      display: none;
-    }
-
-    .tab-panel.active {
-      display: contents;
-    }
-
-    /* ── Upload label ── */
-    .upload-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 7px 14px;
-      border: 1px solid var(--border);
+    /* Error box */
+    .error-box {
+      padding: 12px 14px;
       border-radius: var(--r-sm);
-      cursor: pointer;
+      background: rgba(244, 63, 94, 0.08);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      color: #fda4af;
+      font-family: var(--font-mono);
       font-size: 0.78rem;
-      color: var(--ink2);
-      background: var(--bg3);
-      transition: all 0.18s;
     }
 
-    .upload-label:hover {
-      border-color: var(--border-bright);
+    .error-box strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--rose);
+    }
+
+    /* Model evaluation table */
+    .eval-table-wrap {
+      overflow-x: auto;
+      margin-top: 12px;
+    }
+
+    .eval-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+    }
+
+    .eval-table th {
+      text-align: left;
+      padding: 8px 12px;
+      background: var(--bg3);
+      color: var(--ink2);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .eval-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
       color: var(--ink);
     }
 
-    /* ── SPAC toggle wrapper ── */
-    .spac-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
+    .eval-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .eval-table tr:hover td {
       background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      margin-top: 10px;
+    }
+
+    .best-value {
+      color: var(--teal);
+      font-weight: 700;
+    }
+
+    /* Radar chart wrapper */
+    .radar-wrap {
+      max-width: 340px;
+      margin: 0 auto;
+    }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 6px 0;
+    }
+
+    /* Confidence bar */
+    .conf-bar-wrap {
+      margin-top: 6px;
+    }
+
+    .conf-bar {
+      height: 3px;
+      border-radius: 99px;
+      background: var(--teal);
+      opacity: 0.6;
+    }
+
+    /* Interpretation label */
+    .interp-label {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-top: 4px;
+      background: var(--teal-dim);
+      color: var(--teal);
+      border: 1px solid rgba(0, 212, 170, 0.2);
+    }
+
+    .interp-label.warn {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--amber);
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+
+    .interp-label.bad {
+      background: rgba(244, 63, 94, 0.1);
+      color: var(--rose);
+      border-color: rgba(244, 63, 94, 0.25);
     }
   </style>
 </head>
 
 <body>
 
-  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
   <header class="site-header">
     <div class="site-header-brand">
-      <div class="brand-icon">
+      <div class="brand-icon" aria-hidden="true">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M12 2L2 7l10 5 10-5-10-5z" />
           <path d="M2 17l10 5 10-5" />
@@ -728,153 +967,241 @@
         </svg>
       </div>
       <div>
-        <div class="brand-name">Hinglish<span>Toolkit</span></div>
+        <div class="brand-name">Hinglish <span>Toolkit</span></div>
       </div>
-      <span class="header-badge">Stage 4 · MLP</span>
+      <span class="header-badge">v2.0</span>
     </div>
 
-    <nav class="nav-tabs">
-      <button class="nav-tab active" data-tab="preview">Preview</button>
-      <button class="nav-tab" data-tab="analysis">Analysis</button>
-      <button class="nav-tab" data-tab="inference">Model Inference</button>
-    </nav>
+    <div class="header-right">
+      <div class="sys-info-pill" id="sysInfoPill" aria-label="System status">
+        <div class="sys-dot" id="sysStatusDot"></div>
+        <span id="sysInfoText">Checking backend…</span>
+      </div>
+
+      <nav class="nav-tabs" role="tablist" aria-label="Main navigation">
+        <button class="nav-tab" role="tab" aria-selected="true" aria-controls="tab-preview" data-tab="preview"
+          id="tabn-preview">Preview</button>
+        <button class="nav-tab" role="tab" aria-selected="false" aria-controls="tab-analysis" data-tab="analysis"
+          id="tabn-analysis">Analysis</button>
+        <button class="nav-tab" role="tab" aria-selected="false" aria-controls="tab-inference" data-tab="inference"
+          id="tabn-inference">Inference</button>
+      </nav>
+    </div>
   </header>
 
-  <!-- ── Main ──────────────────────────────────────────────────────────── -->
-  <main class="main-content">
+  <main class="main-content" id="main">
 
-    <!-- ═══════════════════════════════════════════════════════ PREVIEW TAB -->
-    <div class="tab-panel active" id="tab-preview">
+    <!-- ══════════════════════════════════════════ PREVIEW TAB -->
+    <div role="tabpanel" id="tab-preview" aria-labelledby="tabn-preview" class="active">
 
-      <!-- Input / Output -->
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-title"><span class="dot"></span>Input</div>
-          <div class="card-sub">Edit freely — output updates live via client simulation or server</div>
-          <textarea id="inputText" rows="5"
-            spellcheck="false">yaar movie bahuuut acchi thi, main bahut happy hua!</textarea>
-          <div style="margin-top:8px; display:flex; align-items:center; gap:8px;">
-            <span class="status-text" id="processingMode">Simulated client-side</span>
+      <div class="grid-2" style="gap:20px; align-items:start;">
+
+        <!-- Left: input + modules -->
+        <div style="display:flex; flex-direction:column; gap:16px;">
+
+          <div class="card">
+            <div class="card-title"><span class="dot"></span>Input</div>
+            <div class="card-sub">Type or paste Hinglish text. Processing is sent to the backend.</div>
+            <label for="inputText" class="sr-only">Input text</label>
+            <textarea id="inputText" rows="5" placeholder="yaar movie bahuuut acchi thi, bilkul mast experience tha…"
+              aria-label="Input Hinglish text"></textarea>
+            <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+              <button class="btn btn-primary" id="processBtn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+                Process
+              </button>
+              <button class="btn btn-ghost" id="resetModulesBtn">Reset modules</button>
+              <span class="status-text" id="processingMode" aria-live="polite"></span>
+            </div>
           </div>
+
+          <!-- Validation banner -->
+          <div class="validation-banner" id="validationBanner" role="alert" aria-live="assertive">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span id="validationMsg"></span>
+          </div>
+
+          <!-- Module list — rendered dynamically from /available_modules -->
+          <div class="card">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+              <div class="card-title" style="margin:0;"><span class="dot"></span>Preprocessing Modules</div>
+            </div>
+            <div id="moduleList" style="display:flex; flex-direction:column; gap:8px;" role="group"
+              aria-label="Module toggles">
+              <div class="status-text" style="padding:8px;">Loading modules from backend…</div>
+            </div>
+          </div>
+
         </div>
-        <div class="card">
-          <div class="card-title"><span class="dot"></span>Processed Output</div>
-          <div class="card-sub">
-            <span class="chip chip-en">EN</span>
-            <span class="chip chip-hi">HI</span>
-            <span class="chip chip-unk">UNK</span>
-            <span class="chip chip-sw">SWITCH</span>
+
+        <!-- Right: output + config -->
+        <div style="display:flex; flex-direction:column; gap:16px;">
+
+          <div class="card">
+            <div class="card-title"><span class="dot"></span>Output</div>
+            <div class="card-sub" style="margin-bottom:8px;">
+              Switch markers (<span class="chip chip-sw">[SWITCH_*]</span>) are <strong>visualization only</strong> —
+              never sent to model inference.
+            </div>
+            <div class="output-panel" id="outputText" role="region" aria-live="polite"
+              aria-label="Processed output text">
+              Output will appear here.
+            </div>
           </div>
-          <div class="output-panel" id="outputText"></div>
+
+          <!-- Module Parameter Editor — populated when a module with params is active -->
+          <div class="card" id="paramEditorCard" style="display:none;">
+            <div class="card-title"><span class="dot"></span>Module Parameters</div>
+            <div class="card-sub">Override default parameters for active modules. Changes update the Python config in
+              real time.</div>
+            <div id="paramEditorBody" style="display:flex; flex-direction:column; gap:12px;"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span class="dot"></span>Python Config</div>
+            <div class="card-sub">Copy this to reproduce your pipeline exactly.</div>
+            <pre class="code-block" id="pyConfig">
+from combined_preprocessing_pipeline import CombinedPreprocessingPipeline
+
+pipeline = CombinedPreprocessingPipeline(
+    # no modules enabled
+)
+result = pipeline.process("your text here")
+pipeline.process_csv("hinglish.csv", "output.csv")</pre>
+          </div>
+
         </div>
       </div>
 
-      <!-- Module toggles -->
-      <div class="card">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
-          <div class="card-title" style="margin:0;"><span class="dot"></span>Preprocessing Modules</div>
-          <button class="btn-ghost btn" id="resetBtn">Reset all</button>
-        </div>
-        <div id="moduleList" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;"></div>
-      </div>
+    </div>
 
-      <!-- Python config -->
-      <div class="card">
-        <div class="card-title" style="margin-bottom:10px;"><span class="dot"></span>Python Config</div>
-        <pre class="code-block" id="pyConfig"></pre>
-      </div>
-
-      <!-- CSV validator -->
-      <div class="card">
-        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
-          <div>
-            <div class="card-title" style="margin:0;"><span class="dot"></span>Dataset Validator</div>
-            <div class="card-sub" style="margin:4px 0 0;">Expected schema: <code
-                style="color:var(--teal); font-family:monospace;">text, sentiment, label</code></div>
+    <!-- ══════════════════════════════════════════ EXPERIMENT HISTORY + PIPELINE EXPORT -->
+    <!-- Experiment history (Fix 7) and pipeline export/import (Fix 8) share one card.
+       History is persisted to IndexedDB (localStorage fallback). -->
+    <div style="display:flex; flex-direction:column; gap:0;" id="tab-preview-footer">
+      <div class="card" style="margin:0 0 24px;">
+        <div
+          style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+          <div class="card-title" style="margin:0;"><span class="dot"></span>Experiment History</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-ghost" id="exportPipelineBtn" title="Export current pipeline config as JSON">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Export Pipeline
+            </button>
+            <label class="upload-label" for="importPipelineFile" title="Import a previously exported pipeline JSON">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              Import Pipeline
+            </label>
+            <input type="file" id="importPipelineFile" accept=".json" class="sr-only" aria-label="Import pipeline JSON">
+            <button class="btn btn-ghost" id="clearHistoryBtn">Clear History</button>
           </div>
+        </div>
+        <div id="historyList" style="display:flex; flex-direction:column; gap:6px; max-height:240px; overflow-y:auto;">
+          <div class="status-text" style="padding:6px 0;">No experiments recorded yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ ANALYSIS TAB -->
+    <div role="tabpanel" id="tab-analysis" aria-labelledby="tabn-analysis">
+
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Dataset Analysis</div>
+        <div class="card-sub">Upload a CSV with columns: text, sentiment, label. Runs full metric suite on the backend.
+        </div>
+
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
           <label class="upload-label" for="csvUpload">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="17 8 12 3 7 8" />
               <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
-            Choose CSV
-            <input type="file" accept=".csv" id="csvUpload" hidden />
+            Upload CSV
           </label>
+          <input type="file" id="csvUpload" accept=".csv" class="sr-only" aria-label="Upload CSV dataset">
+          <span id="selectedFile" class="status-text">No file selected</span>
+
+          <div style="display:flex; align-items:center; gap:8px; margin-left:auto; flex-wrap:wrap;">
+            <label for="batchSize" style="font-size:0.78rem; color:var(--ink2);">Batch size</label>
+            <input type="number" id="batchSize" value="32" min="1" max="512" style="width:70px;"
+              aria-label="Batch size">
+          </div>
         </div>
-        <div id="schemaResult" class="schema-result">No file selected.</div>
-      </div>
 
-    </div>
+        <div id="schemaResult" class="schema-result" role="status" style="display:none;"></div>
 
-    <!-- ════════════════════════════════════════════════════ ANALYSIS TAB -->
-    <div class="tab-panel" id="tab-analysis">
-
-      <!-- Controls -->
-      <div class="card">
-        <div class="card-title" style="margin-bottom:10px;"><span class="dot"></span>Dataset Analysis — Multilingual
-          Preprocessing Profile</div>
-        <div class="card-sub">Upload CSV, enable modules above, then run. Requires <code
-            style="color:var(--teal);font-family:monospace;">python api.py</code> on <code
-            style="color:var(--teal);font-family:monospace;">:8000</code></div>
-
-        <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px; margin-top:12px;">
-          <div>
-            <div style="font-size:0.72rem; color:var(--ink2); margin-bottom:4px;">Batch size (embeddings)</div>
-            <input type="number" id="batchSize" value="32" min="1" style="width:90px;" />
+        <div class="spac-row">
+          <div class="toggle" id="spacToggle" role="switch" aria-checked="false"
+            aria-label="Enable SPRC score computation" tabindex="0">
+            <div class="toggle-knob"></div>
           </div>
-          <div>
-            <div style="font-size:0.72rem; color:var(--ink2); margin-bottom:4px;">Selected file</div>
-            <div id="selectedFile"
-              style="font-family:monospace; font-size:0.75rem; color:var(--ink2); padding-top:2px;">None</div>
-          </div>
+          <span style="font-size:0.82rem; color:var(--ink2);">Compute SPRC score</span>
+          <span class="novel-badge"
+            data-tooltip="Switch-Point Representation Collapse: cosine-similarity entropy of token embeddings at language boundaries vs elsewhere. Novel metric, increases compute time.">NOVEL</span>
+        </div>
+
+        <div style="margin-top:14px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
           <button class="btn btn-primary" id="runAnalysisBtn" disabled>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              aria-hidden="true">
               <polygon points="5 3 19 12 5 21 5 3" />
             </svg>
             Run Analysis
           </button>
-        </div>
-
-        <div class="spac-row">
-          <div class="toggle" id="spacToggle">
-            <div class="toggle-knob"></div>
-          </div>
-          <div>
-            <div style="font-size:0.8rem; font-weight:500;">Enable SPAC </div>
-            <div style="font-size:0.7rem; color:var(--ink3);">Switch-Point Attention Collapse — expensive (per-token
-              embeddings). Disable for large datasets.</div>
-          </div>
-        </div>
-
-        <div style="margin-top:14px;">
-          <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-            <div class="status-text" id="analysisProgress">Idle.</div>
-            <div class="status-text" id="analysisPercent">—</div>
-          </div>
-          <div class="progress-wrap">
-            <div class="progress-bar" id="progressBar"></div>
+          <div style="flex:1;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <span class="status-text" id="analysisProgress" aria-live="polite">Upload a dataset to begin.</span>
+              <span class="status-text" id="analysisPercent">0%</span>
+            </div>
+            <div class="progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+              aria-label="Analysis progress" id="progressBarWrap">
+              <div class="progress-bar" id="progressBar"></div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Results grid -->
+      <!-- Results sections — hidden until results arrive -->
       <div id="resultsGrid" style="display:none; flex-direction:column; gap:20px;">
 
-        <!-- Row 1: stat cards -->
-        <div class="grid-4" id="statCards"></div>
+        <!-- Summary stats -->
+        <div class="card">
+          <div class="card-title"><span class="dot"></span>Summary</div>
+          <div class="grid-4" style="margin-top:12px;" id="statCards"></div>
+        </div>
 
-        <!-- Row 2: Information Theory -->
+        <!-- Information Theory -->
         <div class="metric-section">
           <div class="metric-section-header">
-            <span class="metric-section-title">Information Theory · ΔI</span>
+            <span class="metric-section-title"
+              data-tooltip="Shannon entropy and a TF-IDF-based mutual information proxy, before and after preprocessing. The MI values approximate but are not strict I(X;Y).">Information
+              Theory · H(X)</span>
             <span class="metric-section-badge">standard</span>
           </div>
           <div class="metric-section-body">
             <div class="grid-2" style="gap:12px;">
               <div class="chart-wrap">
-                <h4>Entropy &amp; MI</h4>
-                <canvas id="entropyChart" height="150"></canvas>
+                <h4>Entropy &amp; MI comparison</h4>
+                <canvas id="entropyChart" height="150" aria-label="Entropy and mutual information bar chart"></canvas>
               </div>
               <div>
                 <div class="grid-2" style="gap:8px;" id="infoStatCards"></div>
@@ -883,34 +1210,38 @@
           </div>
         </div>
 
-        <!-- Row 3: Fertility Entropy -->
+        <!-- Fertility Entropy -->
         <div class="metric-section">
           <div class="metric-section-header">
-            <span class="metric-section-title">Fertility Entropy · H<sub>F</sub> </span>
-            <!-- <span class="metric-section-badge">novel</span> -->
+            <span class="metric-section-title"
+              data-tooltip="H_F measures how evenly subword fertility is distributed across tokens. Higher = more balanced tokenization.">Fertility
+              Entropy · H<sub>F</sub></span>
           </div>
           <div class="metric-section-body">
             <div class="grid-2" style="gap:12px;">
               <div class="chart-wrap">
-                <h4>H<sub>F</sub> distribution before/after</h4>
-                <canvas id="fertilityChart" height="150"></canvas>
+                <h4>H<sub>F</sub> distribution before / after</h4>
+                <canvas id="fertilityChart" height="150"
+                  aria-label="Fertility entropy histogram before and after preprocessing"></canvas>
               </div>
               <div id="fertilityStats" class="grid-2" style="gap:8px; align-content:start;"></div>
             </div>
           </div>
         </div>
 
-        <!-- Row 4: Spectral + Embedding stability -->
+        <!-- Spectral + Stability -->
         <div class="grid-2" style="gap:20px;">
           <div class="metric-section">
             <div class="metric-section-header">
-              <span class="metric-section-title">Spectral · κ(E)</span>
+              <span class="metric-section-title"
+                data-tooltip="Condition number κ(E) of the embedding matrix. Lower is more numerically stable.">Spectral
+                · κ(E)</span>
               <span class="metric-section-badge">standard</span>
             </div>
             <div class="metric-section-body">
               <div class="chart-wrap" style="margin-bottom:8px;">
                 <h4>Top-10 eigenvalues</h4>
-                <canvas id="eigenChart" height="130"></canvas>
+                <canvas id="eigenChart" height="130" aria-label="Top 10 eigenvalues line chart"></canvas>
               </div>
               <div class="grid-2" style="gap:8px;" id="spectralStatCards"></div>
             </div>
@@ -918,42 +1249,46 @@
 
           <div class="metric-section">
             <div class="metric-section-header">
-              <span class="metric-section-title">Embedding Stability</span>
+              <span class="metric-section-title"
+                data-tooltip="Cosine similarity between original and preprocessed embeddings. Higher = less semantic drift.">Embedding
+                Stability</span>
               <span class="metric-section-badge">standard</span>
             </div>
             <div class="metric-section-body">
               <div class="chart-wrap" style="margin-bottom:8px;">
                 <h4>Cosine similarity histogram</h4>
-                <canvas id="simHistChart" height="130"></canvas>
+                <canvas id="simHistChart" height="130" aria-label="Cosine similarity histogram"></canvas>
               </div>
               <div class="grid-2" style="gap:8px;" id="stabilityStatCards"></div>
             </div>
           </div>
         </div>
 
-        <!-- Row 5: Cross-lingual (CRD) + SPAC -->
+        <!-- CRD + SPRC -->
         <div class="grid-2" style="gap:20px;">
           <div class="metric-section">
             <div class="metric-section-header">
-              <span class="metric-section-title">Cross-lingual · CRD <span class="novel-badge">NOVEL</span></span>
-              <!-- <span class="metric-section-badge">novel</span> -->
+              <span class="metric-section-title"
+                data-tooltip="Cross-lingual Representation Distance: L2 distance between EN and HI embedding centroids. Novel metric.">Cross-lingual
+                · CRD <span class="novel-badge">NOVEL</span></span>
             </div>
             <div class="metric-section-body">
-              <div id="crdStats" class="grid-2" style="gap:8px;"></div>
+              <div class="grid-2" style="gap:8px;" id="crdStats"></div>
             </div>
           </div>
 
           <div class="metric-section" id="spacSection">
             <div class="metric-section-header">
-              <span class="metric-section-title">SPAC Score </span>
-              <!-- <span class="metric-section-badge">novel</span> -->
+              <span class="metric-section-title"
+                data-tooltip="Switch-Point Representation Collapse: cosine-similarity entropy of independently-encoded token embeddings at code-switch boundaries vs elsewhere. No attention matrix is computed. Novel metric.">SPRC
+                Score <span class="novel-badge">NOVEL</span></span>
             </div>
             <div class="metric-section-body">
               <div id="spacStats" class="grid-2" style="gap:8px;">
                 <div class="stat-card" style="grid-column:span 2;">
                   <div class="stat-label">Status</div>
-                  <div style="font-size:0.78rem; color:var(--ink3);">Enable SPAC toggle above and re-run to compute
-                    switch-point attention collapse score.</div>
+                  <div style="font-size:0.78rem; color:var(--ink3);">Enable SPRC toggle and re-run to compute
+                    switch-point representation collapse score.</div>
                 </div>
               </div>
             </div>
@@ -964,350 +1299,348 @@
         <div class="card">
           <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
             <div class="card-title" style="margin:0;"><span class="dot"></span>Raw JSON Results</div>
-            <button class="btn btn-ghost" id="copyJsonBtn">Copy</button>
+            <button class="btn btn-ghost" id="copyJsonBtn" aria-label="Copy JSON to clipboard">Copy</button>
           </div>
-          <pre class="raw-json" id="rawJson">No results yet.</pre>
+          <pre class="raw-json" id="rawJson" tabindex="0" aria-label="Raw JSON analysis results">No results yet.</pre>
         </div>
 
-      </div>
+      </div><!-- /resultsGrid -->
     </div>
 
-    <!-- ══════════════════════════════════════════════ MODEL INFERENCE TAB -->
-    <div class="tab-panel" id="tab-inference">
+    <!-- ══════════════════════════════════════════ INFERENCE TAB -->
+    <div role="tabpanel" id="tab-inference" aria-labelledby="tabn-inference">
 
       <div class="card">
-        <div class="card-title" style="margin-bottom:4px;"><span class="dot"></span>Dataset Model Inference</div>
+        <div class="card-title"><span class="dot"></span>Dataset Model Inference</div>
         <div class="card-sub">Run preprocessing + multilingual transformer evaluation. Results are logged to MLflow.
-        </div>
+          Switch markers and language tags are stripped before inference.</div>
 
         <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:14px; align-items:flex-start;">
           <div style="flex:1; min-width:200px;">
             <div
               style="font-size:0.72rem; color:var(--ink2); margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; font-family:monospace;">
               Select models</div>
-            <div id="modelCheckboxes" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+            <div id="modelCheckboxes" style="display:flex; flex-wrap:wrap; gap:6px;" role="group"
+              aria-label="Model selection"></div>
           </div>
           <div style="flex:1; min-width:200px;">
             <div
               style="font-size:0.72rem; color:var(--ink2); margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; font-family:monospace;">
-              Preprocessed preview</div>
+              Model input preview</div>
             <div
               style="font-family:monospace; font-size:0.78rem; background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:10px; min-height:60px; color:var(--ink2);"
-              id="currentPreprocessedText">(preprocessed text will appear here)</div>
+              id="currentPreprocessedText" aria-label="Sanitized text that will be sent to models">(preprocessed text
+              will appear here)</div>
+            <div style="font-size:0.68rem; color:var(--ink3); margin-top:4px;">⚠ Markers stripped — this is the text
+              sent to transformers.</div>
           </div>
         </div>
 
         <div style="margin-top:14px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
           <button class="btn btn-amber" id="runModelEvalBtn" disabled>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              aria-hidden="true">
               <polygon points="5 3 19 12 5 21 5 3" />
             </svg>
             Evaluate Models
           </button>
-          <div class="status-text" id="modelEvalProgress">No run yet.</div>
+          <div class="status-text" id="modelEvalProgress" aria-live="polite">No run yet.</div>
         </div>
 
-        <pre class="raw-json" id="modelEvalResults" style="margin-top:14px;">No results yet.</pre>
+      </div>
+
+      <!-- Model results -->
+      <div id="modelResultsArea" style="display:none; flex-direction:column; gap:20px;">
+
+        <!-- Radar chart for model comparison -->
+        <div class="card">
+          <div class="card-title"><span class="dot"></span>Model Comparison</div>
+          <div class="grid-2" style="gap:20px; margin-top:12px; align-items:start;">
+            <div class="radar-wrap chart-wrap">
+              <h4>Performance radar (F1 · Accuracy · Precision · Recall)</h4>
+              <canvas id="modelRadarChart" height="260" aria-label="Radar chart comparing model performance"></canvas>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <div class="chart-wrap">
+                <h4>Accuracy</h4>
+                <canvas id="accuracyChart" height="120" aria-label="Accuracy bar chart by model"></canvas>
+              </div>
+              <div class="chart-wrap">
+                <h4>F1 score</h4>
+                <canvas id="f1Chart" height="120" aria-label="F1 score bar chart by model"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="dot"></span>Resource Usage</div>
+          <div class="grid-2" style="gap:20px; margin-top:12px;">
+            <div class="chart-wrap">
+              <h4>Inference latency (ms/sample)</h4>
+              <canvas id="latencyChart" height="130" aria-label="Latency bar chart by model"></canvas>
+            </div>
+            <div class="chart-wrap">
+              <h4>Peak memory (MB)</h4>
+              <canvas id="memoryChart" height="130" aria-label="Memory usage bar chart by model"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table view -->
+        <div class="card">
+          <div class="card-title"><span class="dot"></span>Results Table</div>
+          <div class="eval-table-wrap">
+            <table class="eval-table" id="evalTable" aria-label="Model evaluation results">
+              <thead>
+                <tr id="evalTableHead"></tr>
+              </thead>
+              <tbody id="evalTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+            <div class="card-title" style="margin:0;"><span class="dot"></span>Raw MLflow Results</div>
+            <button class="btn btn-ghost" id="copyModelJsonBtn" aria-label="Copy model results JSON">Copy</button>
+          </div>
+          <pre class="raw-json" id="modelEvalResults" tabindex="0">No results yet.</pre>
+        </div>
+
       </div>
 
     </div>
 
   </main>
 
+  <!-- Screen reader only utility -->
+  <style>
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+
   <script>
-    // ═══════════════════════════════════════════════════════════════════════════
-    // DATA
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // CONFIG — loaded from <meta> so no endpoints are hardcoded in JS
+    // ═══════════════════════════════════════════════════════════════════════════════
 
-    const MODULES = [
-      {
-        key: "phonetic_normalization", label: "Phonetic Normalization", tag: "P0+",
-        desc: "Normalizes phonetic variants: bahuuut→bahut, achaaa→accha.", fn: phoneticNormalize
-      },
-      {
-        key: "language_aware_normalization", label: "Lang-Aware Normalization", tag: "P2",
-        desc: "Per-language compression rules; preserves expressive intensity.", fn: langAwareNormalize
-      },
-      {
-        key: "script_unification", label: "Script Unification", tag: "P3",
-        desc: "Converts romanized Hindi tokens to Devanagari script.", fn: scriptUnify
-      },
-      {
-        key: "transliteration", label: "Transliteration", tag: "P3",
-        desc: "ITRANS→Devanagari transliteration for Hindi tokens.", fn: transliterate
-      },
-      {
-        key: "balanced_tokenization", label: "Balanced Tokenization", tag: "P1",
-        desc: "Maps function words to Devanagari to equalize fertility H_F.", fn: balancedTokenize
-      },
-      {
-        key: "language_identification_tagging", label: "Language ID Tagging", tag: "P4",
-        desc: "Wraps each token with <EN>, <HI>, <UNK> language tags.", fn: langIdTag
-      },
-      {
-        key: "switch_point_encoding", label: "Switch-Point Encoding", tag: "P4",
-        desc: "Inserts [SWITCH_EN_HI]/[SWITCH_HI_EN] markers at boundaries.", fn: switchPoint
-      },
-      {
-        key: "code_switch_augmentation", label: "Code-Switch Augmentation", tag: "AUG",
-        desc: "Stochastic EN→HI lexical substitution (one pass preview).", fn: codeSwitchAug
-      },
-      {
-        key: "context_aware_subword_sampling", label: "Subword Sampling", tag: "SP",
-        desc: "Stochastic SentencePiece dropout simulation.", fn: subwordSample
-      },
-    ];
+    // Endpoint base — no hardcoded localhost.
+    // Both APIs are assumed to be served from the same origin as the HTML file.
+    // To point at a different host, set window.HINGLISH_API_BASE / HINGLISH_PROC_BASE
+    // in a server-injected <script> block BEFORE this file loads.
+    const API_BASE = window.HINGLISH_API_BASE || window.location.origin;
+    const PROC_BASE = window.HINGLISH_PROC_BASE || window.location.origin;
 
-    const HINGLISH_LEXICON = new Set([
-      "hai", "haan", "han", "nahi", "nahin", "na", "kya", "kyun", "kyu", "ka", "ki", "ke", "ko",
-      "se", "mein", "me", "men", "main", "mai", "hum", "ham", "tum", "aap", "aur", "toh", "to",
-      "par", "pe", "ab", "ya", "phir", "fir", "tab", "jab", "agar", "bhi", "bhai", "bahut", "bohot",
-      "bahot", "yaar", "yar", "ji", "haanji", "theek", "thik", "acha", "accha", "achha", "bura",
-      "sahi", "galat", "badhiya", "mast", "thoda", "thodi", "thora", "mera", "meri", "mere", "tera",
-      "teri", "tere", "unka", "unki", "unke", "iska", "iski", "iske", "wo", "woh", "ye", "yeh",
-      "unhonne", "inhonne", "hamne", "maine", "kiye", "kiya", "hua", "hui", "hue", "tha", "thi",
-      "raha", "rahi", "rahe", "gaya", "gayi", "gaye", "ho", "hun", "hu", "hoon", "hoga", "hogi",
-      "hoge", "hota", "hoti", "hote", "karna", "karta", "karti", "karte", "karen", "karke", "dekh",
-      "dekho", "dekhna", "bol", "bolo", "sun", "suno", "chal", "chalo", "ja", "jao", "aao", "aana",
-      "jana", "rakho", "rakha", "rakhna", "karo", "kar", "samajh", "samjh", "ladki", "ghar", "khana",
-      "padhai", "pyar", "sach", "jaldi",
-    ]);
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // STATE  (no linguistic resources here — those live in backend only)
+    // ═══════════════════════════════════════════════════════════════════════════════
 
-    const HINGLISH_MAP = {
-      "hai": "है", "haan": "हाँ", "han": "हाँ", "nahi": "नहीं", "na": "ना", "kya": "क्या",
-      "kyun": "क्यों", "ka": "का", "ki": "की", "ke": "के", "ko": "को", "se": "से", "mein": "में",
-      "main": "मैं", "hum": "हम", "tum": "तुम", "aap": "आप", "aur": "और", "toh": "तो", "par": "पर",
-      "pe": "पे", "ab": "अब", "phir": "फिर", "tab": "तब", "jab": "जब", "agar": "अगर", "bhi": "भी",
-      "bhai": "भाई", "bahut": "बहुत", "bohot": "बहुत", "yaar": "यार", "ji": "जी", "theek": "ठीक",
-      "acha": "अच्छा", "accha": "अच्छा", "bura": "बुरा", "sahi": "सही", "galat": "गलत",
-      "badhiya": "बढ़िया", "mast": "मस्त", "thoda": "थोड़ा", "mera": "मेरा", "meri": "मेरी",
-      "tera": "तेरा", "wo": "वो", "woh": "वो", "ye": "ये", "yeh": "यह", "tha": "था", "thi": "थी",
-      "raha": "रहा", "gaya": "गया", "ho": "हो", "hoon": "हूं", "karna": "करना", "karo": "करो",
-      "kar": "कर", "dekh": "देख", "bol": "बोल", "sun": "सुन", "chal": "चल", "ja": "जा",
-      "aana": "आना", "jana": "जाना", "ghar": "घर", "khana": "खाना", "pyar": "प्यार",
-      "sach": "सच", "jaldi": "जल्दी",
-    };
-
-    const CANONICAL = {
-      acha: "accha", achha: "accha", bohot: "bahut", bohut: "bahut", bahot: "bahut",
-      bahuut: "bahut", yar: "yaar", yaaar: "yaar", thik: "theek", kyu: "kyun",
-      han: "haan", nhi: "nahi", nahii: "nahi", samjh: "samajh",
-    };
-
-    const ENGLISH_WORDS = new Set([
-      "the", "and", "or", "but", "is", "are", "was", "were", "be", "been", "being",
-      "this", "that", "these", "those", "a", "an", "of", "to", "in", "on", "for", "with",
-      "as", "at", "by", "from", "it", "not", "no", "yes", "you", "we", "they", "he", "she", "i",
-      "movie", "music", "good", "bad", "great", "small", "large", "work", "code", "data", "text",
-      "model", "label", "train", "test", "false", "true", "one", "two", "three", "new", "old",
-      "time", "day", "night", "best", "worst", "smart", "happy", "sad", "love", "very", "today",
-      "food", "home", "friend", "what", "why", "how", "when", "where", "come", "go", "see",
-      "tell", "listen", "do", "make", "right", "wrong", "kal", "meeting", "totally", "forgot",
-      "agenda", "late", "because", "traffic", "terrible",
-    ]);
-
-    const REPLACEMENT_LEXICON = {
-      very: "bahut", good: "accha", bad: "bura", happy: "khush", sad: "dukhi",
-      today: "aaj", movie: "film", food: "khana", home: "ghar", work: "kaam",
-      friend: "dost", yes: "haan", no: "nahi", why: "kyun", what: "kya",
-    };
-
-    const PHONETIC_CLUES = [
-      "aa", "ai", "au", "bh", "dh", "kh", "ph", "sh", "th", "ch", "gh", "jh", "ky", "py", "ny", "ri", "ya"
-    ];
-
-    const MODEL_EVAL_MODELS = [
-      { key: "xlmr", label: "XLM-R" },
-      { key: "muril", label: "MuRIL" },
-      { key: "nllb", label: "NLLB" },
-      { key: "indicbert", label: "IndicBERT" },
-      { key: "mbert", label: "mBERT" },
-    ];
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // STATE
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    const state = {};
-    MODULES.forEach(m => state[m.key] = false);
-    const modelEvalState = {};
-    MODEL_EVAL_MODELS.forEach(m => modelEvalState[m.key] = true);
-    let lastProcessedText = "";
+    const enabledModules = {};       // key → bool, populated after /available_modules
+    let availableModules = [];    // [{key, label, tag, desc, category, conflicts}]
+    let lastRawText = '';
+    let lastProcessedText = '';
     let lastSelectedFile = null;
     let spacEnabled = false;
+    const modelEvalState = {};
+    let pollController = null;  // AbortController for SSE / polling
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // LANGUAGE DETECTION
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // API HELPERS
+    // ═══════════════════════════════════════════════════════════════════════════════
 
-    function isEnglish(t) { return ENGLISH_WORDS.has(t); }
-    function isHindi(t) {
-      if (HINGLISH_LEXICON.has(t)) return true;
-      if (!isEnglish(t) && /[a-z]/.test(t))
-        return PHONETIC_CLUES.some(c => t.includes(c));
-      return false;
-    }
-    function detectLang(t) {
-      if (isEnglish(t)) return "EN";
-      if (isHindi(t)) return "HI";
-      return "UNK";
-    }
-    function tokenize(text) {
-      return text.toLowerCase().match(/\w+|[^\w\s]/gu) || [];
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // MODULE TRANSFORM FUNCTIONS
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    function phoneticNormalize(text) {
-      return tokenize(text).map(tok => {
-        if (/[^\w]/.test(tok)) return tok;
-        let t = CANONICAL[tok] || tok;
-        t = t.replace(/([aeiou])\1{2,}/g, "$1");
-        t = t.replace(/([^aeiou ])\1{2,}/g, "$1$1");
-        return t;
-      }).join(" ");
-    }
-
-    function langAwareNormalize(text) {
-      return tokenize(text).map(tok => {
-        if (/[^\w]/.test(tok)) return tok;
-        const lang = detectLang(tok);
-        if (lang === "HI") return CANONICAL[tok] || tok.replace(/([aeiou])\1+/g, "$1");
-        if (lang === "EN") return tok.replace(/(.)\1{2,}/g, "$1$1");
-        return tok;
-      }).join(" ");
-    }
-
-    function scriptUnify(text) {
-      return tokenize(text).map(tok => {
-        if (/[^\w]/.test(tok)) return tok;
-        if (isHindi(tok) && !isEnglish(tok)) return `[DEV:${tok}]`;
-        return tok;
-      }).join(" ");
-    }
-
-    function transliterate(text) {
-      return tokenize(text).map(tok => {
-        if (/[^\w]/.test(tok)) return tok;
-        if (isHindi(tok) && !isEnglish(tok)) return `[TR:${tok}]`;
-        return tok;
-      }).join(" ");
-    }
-
-    function balancedTokenize(text) {
-      return tokenize(text).map(tok => {
-        if (/[^\w]/.test(tok)) return tok;
-        return HINGLISH_MAP[tok] || tok;
-      }).join(" ");
-    }
-
-    function langIdTag(text) {
-      return tokenize(text).map(tok => {
-        if (/[^\w]/.test(tok)) return tok;
-        const l = detectLang(tok);
-        return `<${l}>${tok}</${l}>`;
-      }).join(" ");
-    }
-
-    function switchPoint(text) {
-      const toks = tokenize(text).filter(t => /\w/.test(t));
-      const result = [];
-      let prev = null;
-      for (const tok of toks) {
-        const lang = detectLang(tok);
-        if (prev && lang !== prev && prev !== "UNK" && lang !== "UNK")
-          result.push(`[SWITCH_${prev}_${lang}]`);
-        result.push(tok);
-        prev = lang;
+    async function apiFetch(base, path, opts = {}) {
+      const url = base + path;
+      const res = await fetch(url, { ...opts });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`${res.status} ${res.statusText}: ${text.slice(0, 200)}`);
       }
-      return result.join(" ");
+      return res.json();
     }
 
-    function codeSwitchAug(text) {
-      return tokenize(text).map(tok => {
-        if (/[^\w]/.test(tok)) return tok;
-        const rep = REPLACEMENT_LEXICON[tok];
-        if (rep && Math.random() < 0.4) return rep;
-        return tok;
-      }).join(" ");
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // SANITIZE MODEL INPUT
+    // Removes ALL annotation markers before anything is sent to transformers.
+    // This is mandatory — [SWITCH_*], <EN>, <HI>, <UNK> must never reach models.
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    function sanitizeModelInput(text) {
+      return text
+        .replace(/\[SWITCH[^\]]*\]/g, '')  // [SWITCH_EN_HI], [SWITCH_HI_EN], [SWITCH], etc.
+        .replace(/<\/?(EN|HI|HI_ROM|HI_DEV|UNK)>/g, '')  // language tags
+        .replace(/<SWITCH\b[^>]*\/>/g, '')  // XML-style markers
+        .replace(/⟨[^⟩]+⟩/g, '')           // inline arrow markers
+        .replace(/\s{2,}/g, ' ')
+        .trim();
     }
 
-    function subwordSample(text) {
-      return tokenize(text).map(tok => {
-        if (/[^\w]/.test(tok) || tok.length < 5) return tok;
-        if (Math.random() < 0.15 && tok.length > 4) {
-          const mid = Math.floor(tok.length / 2);
-          return tok.slice(0, mid) + "·" + tok.slice(mid);
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // PIPELINE VALIDATION
+    // Checks conflicts declared in module metadata from backend.
+    // Blocks impossible pipelines and shows a visible banner.
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    function validatePipeline() {
+      const banner = document.getElementById('validationBanner');
+      const msgEl = document.getElementById('validationMsg');
+      const active = availableModules.filter(m => enabledModules[m.key]);
+      const issues = [];
+
+      for (const mod of active) {
+        const conflicts = mod.conflicts || [];
+        for (const cKey of conflicts) {
+          if (enabledModules[cKey]) {
+            const other = availableModules.find(m => m.key === cKey);
+            issues.push(`"${mod.label}" conflicts with "${other?.label || cKey}"`);
+          }
         }
-        return tok;
-      }).join(" ");
+      }
+
+      // Analysis modules + model evaluation without sanitization warning
+      const analysisActive = active.some(m => m.category === 'ANALYSIS');
+      if (analysisActive) {
+        issues.push('Language tags / switch markers are visualization only and will be stripped before model inference.');
+      }
+
+      // De-duplicate
+      const unique = [...new Set(issues)];
+
+      if (unique.length) {
+        msgEl.textContent = unique.join(' · ');
+        banner.classList.add('visible');
+      } else {
+        banner.classList.remove('visible');
+      }
+
+      return unique.filter(i => !i.includes('visualization only')).length === 0; // only hard conflicts block
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // RENDER
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // RENDER OUTPUT
+    // Annotates switch markers and language tags visually.
+    // This is the ONLY place markers should appear — never in model input.
+    // ═══════════════════════════════════════════════════════════════════════════════
 
     function renderOutput(text) {
       return text.split(/\s+/).filter(Boolean).map(w => {
-        if (/^\[SWITCH/.test(w)) return `<span class="chip chip-sw">${w}</span>`;
-        if (/^<EN>/.test(w)) return `<span class="chip chip-en">${w.replace(/<\/?EN>/g, "")}</span>`;
-        if (/^<HI>/.test(w)) return `<span class="chip chip-hi">${w.replace(/<\/?HI>/g, "")}</span>`;
-        if (/^<UNK>/.test(w)) return `<span class="chip chip-unk">${w.replace(/<\/?UNK>/g, "")}</span>`;
-        if (/^\[DEV:|^\[TR:/.test(w)) return `<span class="chip chip-hi">${w}</span>`;
-        return w;
-      }).join(" ");
+        if (/^\[SWITCH/i.test(w)) return `<span class="chip chip-sw" title="Switch-point marker — visualization only, not sent to models">${escHtml(w)}</span>`;
+        if (/^<EN>/i.test(w)) return `<span class="chip chip-en">${escHtml(w.replace(/<\/?EN>/gi, ''))}</span>`;
+        if (/^<HI(_ROM|_DEV)?>/i.test(w)) return `<span class="chip chip-hi">${escHtml(w.replace(/<\/?(HI|HI_ROM|HI_DEV)>/gi, ''))}</span>`;
+        if (/^<UNK>/i.test(w)) return `<span class="chip chip-unk">${escHtml(w.replace(/<\/?UNK>/gi, ''))}</span>`;
+        if (/^\[DEV:|^\[TR:/i.test(w)) return `<span class="chip chip-hi">${escHtml(w)}</span>`;
+        if (/<SWITCH\b/i.test(w)) return `<span class="chip chip-sw" title="Switch-point marker">${escHtml(w)}</span>`;
+        return escHtml(w);
+      }).join(' ');
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // PROCESSING
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    async function callServer(text, modules) {
-      const resp = await fetch("http://127.0.0.1:5000/process", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, modules }),
-      });
-      if (!resp.ok) throw new Error("Bad response");
-      const data = await resp.json();
-      if (data?.ok && data.result) return data.result;
-      throw new Error(data?.error || "Unknown server error");
+    function escHtml(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    async function run() {
-      let text = document.getElementById("inputText").value.trim();
-      const activeModules = MODULES.filter(m => state[m.key]).map(m => m.key);
-      const modeEl = document.getElementById("processingMode");
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // PROCESS TEXT  — backend only, no local simulation fallback
+    // ═══════════════════════════════════════════════════════════════════════════════
 
-      try {
-        const result = await callServer(text, activeModules);
-        lastProcessedText = result;
-        modeEl.textContent = "Server-processed";
-        modeEl.className = "status-text done";
-      } catch {
-        let local = text;
-        MODULES.forEach(m => { if (state[m.key]) local = m.fn(local); });
-        lastProcessedText = local;
-        modeEl.textContent = "Client simulation";
-        modeEl.className = "status-text";
+    async function process() {
+      const text = document.getElementById('inputText').value.trim();
+      const modeEl = document.getElementById('processingMode');
+      const outEl = document.getElementById('outputText');
+      const previewEl = document.getElementById('currentPreprocessedText');
+
+      if (!validatePipeline()) {
+        modeEl.textContent = 'Pipeline has conflicts — resolve before processing.';
+        modeEl.className = 'status-text failed';
+        return;
       }
 
-      document.getElementById("outputText").innerHTML = renderOutput(lastProcessedText);
-      document.getElementById("currentPreprocessedText").textContent =
-        lastProcessedText || "(preprocessed text will appear here)";
-      updatePyConfig();
+      lastRawText = text;
+      const active = availableModules.filter(m => enabledModules[m.key]).map(m => m.key);
+
+      if (!text) {
+        outEl.innerHTML = '<span style="color:var(--ink3)">Enter text above.</span>';
+        previewEl.textContent = '(preprocessed text will appear here)';
+        updatePyConfig(active);
+        return;
+      }
+
+      modeEl.textContent = 'Sending to backend…';
+      modeEl.className = 'status-text running';
+
+      try {
+        const data = await apiFetch(PROC_BASE, '/process', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, modules: active }),
+        });
+
+        if (!data?.ok || !data.result) throw new Error(data?.error || 'Unexpected response shape');
+
+        lastProcessedText = data.result;
+        modeEl.textContent = 'Processed by backend';
+        modeEl.className = 'status-text done';
+      } catch (err) {
+        // Backend unavailable — show error, do NOT silently simulate locally
+        outEl.innerHTML = `<div class="error-box">
+      <strong>Backend unavailable</strong>
+      Could not reach <code>${PROC_BASE}/process</code>.<br>
+      Start the preprocessing server to enable real processing.<br>
+      <span style="color:var(--ink3); font-size:0.7rem;">${escHtml(err.message)}</span>
+    </div>`;
+        modeEl.textContent = 'Backend unavailable';
+        modeEl.className = 'status-text failed';
+        lastProcessedText = '';
+        previewEl.textContent = '(backend unavailable)';
+        updatePyConfig(active);
+        return;
+      }
+
+      outEl.innerHTML = renderOutput(lastProcessedText);
+      previewEl.textContent = sanitizeModelInput(lastProcessedText) || '(empty after sanitization)';
+      updatePyConfig(active);
     }
 
-    function updatePyConfig() {
-      const active = MODULES.filter(m => state[m.key]).map(m => `    ${m.key}=True`);
-      const body = active.length ? active.join(",\n") : "    # no modules enabled";
-      document.getElementById("pyConfig").textContent =
-        `from combined_preprocessing_pipeline import CombinedPreprocessingPipeline
+    // Per-module parameter overrides, populated by the parameter editor panel.
+    // Structure: { module_key: { param_name: value, ... } }
+    const moduleParams = {};
 
-pipeline = CombinedPreprocessingPipeline(
-${body},
+    function updatePyConfig(activeKeys) {
+      // Generate valid CombinedPreprocessingPipeline constructor call.
+      // Active modules are passed as boolean kwargs; non-default params go in module_configs.
+      const flagLines = activeKeys.map(k => `    ${k}=True`);
+      const flagsStr = flagLines.length ? flagLines.join(',\n') : '    # no modules enabled';
+
+      const cfgParts = activeKeys
+        .map(k => {
+          const cfg = moduleParams[k] || {};
+          const entries = Object.entries(cfg);
+          if (!entries.length) return null;
+          const inner = entries.map(([pk, pv]) => {
+            const val = typeof pv === 'string' ? `"${pv}"` : pv;
+            return `        "${pk}": ${val}`;
+          }).join(',\n');
+          return `    "${k}": {\n${inner}\n    }`;
+        })
+        .filter(Boolean);
+
+      const cfgStr = cfgParts.length
+        ? `,\n    module_configs={\n${cfgParts.join(',\n')}\n    }`
+        : '';
+
+      document.getElementById('pyConfig').textContent =
+        `from combined_preprocessing_pipeline import build_pipeline
+
+pipeline = build_pipeline(
+${flagsStr}${cfgStr},
 )
 
 # Single string
@@ -1317,182 +1650,336 @@ result = pipeline.process("your text here")
 pipeline.process_csv("hinglish.csv", "output.csv")`;
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // MODULES UI
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // MODULE LIST — fetched from backend, not hardcoded
+    // ═══════════════════════════════════════════════════════════════════════════════
 
-    const list = document.getElementById("moduleList");
-    MODULES.forEach(m => {
-      const row = document.createElement("div");
-      row.className = "module-row";
-      row.innerHTML = `
-    <div class="module-info">
-      <div class="module-label">${m.label} <span class="module-tag">${m.tag}</span></div>
-      <div class="module-desc">${m.desc}</div>
-    </div>
-    <div class="toggle" data-key="${m.key}"><div class="toggle-knob"></div></div>`;
-      list.appendChild(row);
+    async function loadModules() {
+      const list = document.getElementById('moduleList');
+      // Backend is the single source of truth for module metadata.
+      // No static fallback — if /available_modules fails the user must start the backend.
+      let data;
+      try {
+        data = await apiFetch(API_BASE, '/available_modules');
+      } catch (err) {
+        list.innerHTML = `<div class="error-box">
+      <strong>Backend unavailable — cannot load modules</strong>
+      Could not reach <code>${API_BASE}/available_modules</code>.<br>
+      Start the preprocessing API server and reload this page.<br>
+      <span style="color:var(--ink3);font-size:0.7rem;">${escHtml(String(err))}</span>
+    </div>`;
+        return;
+      }
+      availableModules = data.modules || [];
+      if (!availableModules.length) {
+        list.innerHTML = `<div class="error-box"><strong>No modules returned by backend.</strong> Check your API implementation.</div>`;
+        return;
+      }
 
-      row.querySelector(".toggle").addEventListener("click", function () {
-        const key = this.dataset.key;
-        state[key] = !state[key];
-        this.classList.toggle("on", state[key]);
-        row.classList.toggle("active", state[key]);
-        run();
+      // Seed state
+      availableModules.forEach(m => { enabledModules[m.key] = false; });
+
+      // Render
+      list.innerHTML = '';
+      const CATEGORY_ORDER = ['TRANSFORMATION', 'ANALYSIS', 'AUGMENTATION'];
+      const categories = CATEGORY_ORDER.filter(c => availableModules.some(m => m.category === c));
+
+      for (const cat of categories) {
+        const mods = availableModules.filter(m => m.category === cat);
+        if (!mods.length) continue;
+
+        const hdr = document.createElement('div');
+        hdr.style.cssText = 'font-size:0.65rem;font-weight:700;font-family:var(--font-mono);color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;padding:4px 0 2px;';
+        hdr.textContent = cat;
+        list.appendChild(hdr);
+
+        for (const m of mods) {
+          const row = document.createElement('div');
+          row.className = 'module-row';
+          row.dataset.key = m.key;
+
+          const toggleId = `toggle-${m.key}`;
+          row.innerHTML = `
+        <div class="module-info">
+          <div class="module-label">${escHtml(m.label)} <span class="module-tag">${escHtml(m.tag)}</span></div>
+          <div class="module-desc">${escHtml(m.desc)}</div>
+        </div>
+        <div class="toggle" id="${toggleId}" role="switch" aria-checked="false"
+             aria-label="Enable ${escHtml(m.label)}" tabindex="0" data-key="${m.key}">
+          <div class="toggle-knob"></div>
+        </div>`;
+          list.appendChild(row);
+
+          function toggleModule() {
+            const key = m.key;
+            enabledModules[key] = !enabledModules[key];
+            const tog = row.querySelector('.toggle');
+            const isOn = enabledModules[key];
+            tog.setAttribute('aria-checked', String(isOn));
+            row.classList.toggle('active', isOn);
+            validatePipeline();
+            process();
+          }
+
+          row.querySelector('.toggle').addEventListener('click', toggleModule);
+          row.querySelector('.toggle').addEventListener('keydown', e => {
+            if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleModule(); }
+          });
+        }
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // MODEL CHECKBOXES — also loaded from backend
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    // Available models are loaded exclusively from GET /available_models.
+    // No static fallback list — backend is the single source of truth.
+    let availableModelsList = [];  // populated by loadModelList()
+
+    async function loadModelList() {
+      const cont = document.getElementById('modelCheckboxes');
+      let data;
+      try {
+        data = await apiFetch(API_BASE, '/available_models');
+      } catch (err) {
+        cont.innerHTML = `<div class="error-box" style="width:100%;">
+      <strong>Cannot load model list</strong> — ${escHtml(String(err))}
+    </div>`;
+        return;
+      }
+      const models = data?.models || [];
+      if (!models.length) {
+        cont.innerHTML = `<div class="error-box" style="width:100%;">No models returned by backend.</div>`;
+        return;
+      }
+      availableModelsList = models;
+
+      availableModelsList.forEach(model => {
+        modelEvalState[model.key] = true;
+        const lbl = document.createElement('label');
+        lbl.className = 'model-pill';
+        const chk = document.createElement('input');
+        chk.type = 'checkbox'; chk.checked = true;
+        chk.dataset.modelKey = model.key;
+        chk.addEventListener('change', () => { modelEvalState[model.key] = chk.checked; });
+        lbl.appendChild(chk);
+        lbl.appendChild(document.createTextNode(' ' + model.label));
+        cont.appendChild(lbl);
       });
-    });
+    }
 
-    document.getElementById("resetBtn").addEventListener("click", () => {
-      MODULES.forEach(m => {
-        state[m.key] = false;
-        document.querySelector(`[data-key="${m.key}"]`).classList.remove("on");
-        document.querySelector(`[data-key="${m.key}"]`).closest(".module-row").classList.remove("active");
-      });
-      run();
-    });
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // SYSTEM INFO
+    // ═══════════════════════════════════════════════════════════════════════════════
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // MODEL CHECKBOXES
-    // ═══════════════════════════════════════════════════════════════════════════
+    // Canonical HF cache path standardised across the entire toolkit.
+    // Any deviation must be surfaced as a warning so misconfigured environments
+    // are caught before a long model-evaluation run writes to the wrong location.
+    const EXPECTED_HF_CACHE = 'D:/HF_CACHE';
 
-    const mcont = document.getElementById("modelCheckboxes");
-    MODEL_EVAL_MODELS.forEach(model => {
-      const lbl = document.createElement("label");
-      lbl.className = "model-pill";
-      lbl.innerHTML = `<input type="checkbox" checked data-model-key="${model.key}"> ${model.label}`;
-      lbl.querySelector("input").addEventListener("change", function () {
-        modelEvalState[model.key] = this.checked;
-      });
-      mcont.appendChild(lbl);
-    });
+    async function loadSystemInfo() {
+      const dot = document.getElementById('sysStatusDot');
+      const text = document.getElementById('sysInfoText');
+      try {
+        const info = await apiFetch(API_BASE, '/system_info');
+        dot.className = 'sys-dot ok';
+        const gpu = info.gpu_available ? '⚡ GPU' : 'CPU';
+        const cached = info.cached_models?.length
+          ? `${info.cached_models.length} model(s) cached`
+          : 'no models cached';
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // TAB NAVIGATION
-    // ═══════════════════════════════════════════════════════════════════════════
+        // Validate HF cache path — toolkit standard is D:/HF_CACHE.
+        const hfDir = info.hf_cache_dir || '';
+        const cacheOk = hfDir.replace(/\\/g, '/').toUpperCase()
+          === EXPECTED_HF_CACHE.replace(/\\/g, '/').toUpperCase();
 
-    document.querySelectorAll(".nav-tab").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".nav-tab").forEach(b => b.classList.remove("active"));
-        document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-        btn.classList.add("active");
-        document.getElementById(`tab-${btn.dataset.tab}`).classList.add("active");
-      });
-    });
+        let cacheLabel;
+        if (!hfDir) {
+          cacheLabel = '⚠ hf_cache_dir not set';
+          dot.className = 'sys-dot warn';
+        } else if (!cacheOk) {
+          cacheLabel = `⚠ Unexpected cache: ${hfDir}`;
+          dot.className = 'sys-dot warn';
+          // Show a persistent banner so the user doesn't miss it.
+          showCacheWarning(hfDir);
+        } else {
+          cacheLabel = `HF: ${hfDir}`;
+        }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // CSV UPLOAD
-    // ═══════════════════════════════════════════════════════════════════════════
+        text.textContent = [gpu, cached, cacheLabel].filter(Boolean).join(' · ');
+        text.title = `HF cache: ${hfDir || 'unknown'} (expected: ${EXPECTED_HF_CACHE})`;
+      } catch {
+        dot.className = 'sys-dot warn';
+        text.textContent = 'Backend offline';
+      }
+    }
 
-    document.getElementById("csvUpload").addEventListener("change", function () {
+    function showCacheWarning(actualDir) {
+      // Inject a dismissible banner below the header if not already present.
+      if (document.getElementById('cacheDirWarning')) return;
+      const banner = document.createElement('div');
+      banner.id = 'cacheDirWarning';
+      banner.style.cssText = [
+        'background:rgba(245,158,11,0.1)',
+        'border:1px solid rgba(245,158,11,0.35)',
+        'color:#fcd34d',
+        'font-family:var(--font-mono)',
+        'font-size:0.75rem',
+        'padding:10px 32px',
+        'display:flex',
+        'align-items:center',
+        'gap:12px',
+        'position:sticky',
+        'top:61px',
+        'z-index:99',
+      ].join(';');
+      banner.setAttribute('role', 'alert');
+      banner.innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+    <span>
+      <strong>Unexpected HF cache directory.</strong>
+      Backend reports <code>${escHtml(actualDir)}</code> but toolkit standard is
+      <code>${escHtml(EXPECTED_HF_CACHE)}</code>.
+      Set <code>HF_CACHE_DIR = "${escHtml(EXPECTED_HF_CACHE)}"</code> in
+      <code>hf_cache_config.py</code> and restart the backend.
+    </span>
+    <button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;color:inherit;cursor:pointer;font-size:1rem;" aria-label="Dismiss">✕</button>
+  `;
+      document.querySelector('.site-header').insertAdjacentElement('afterend', banner);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // CSV UPLOAD & SCHEMA CHECK
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    document.getElementById('csvUpload').addEventListener('change', function () {
       const file = this.files[0];
       if (!file) return;
       lastSelectedFile = file;
-      document.getElementById("selectedFile").textContent = file.name;
+      document.getElementById('selectedFile').textContent = file.name;
 
       const reader = new FileReader();
       reader.onload = e => {
-        const firstLine = e.target.result.split(/\r?\n/)[0] || "";
-        const cols = firstLine.split(",").map(c => c.trim().replace(/^"|"$/g, "").toLowerCase());
-        const missing = ["text", "sentiment", "label"].filter(r => !cols.includes(r));
-        const el = document.getElementById("schemaResult");
-        if (missing.length === 0) {
-          el.className = "schema-result schema-ok";
-          el.innerHTML = `✓ Schema valid — columns: <strong>${cols.join(", ")}</strong>`;
+        const firstLine = e.target.result.split(/\r?\n/)[0] || '';
+        const cols = firstLine.split(',').map(c => c.trim().replace(/^"|"$/g, '').toLowerCase());
+        const required = ['text', 'sentiment', 'label'];
+        const missing = required.filter(r => !cols.includes(r));
+        const el = document.getElementById('schemaResult');
+        el.style.display = 'block';
+        if (!missing.length) {
+          el.className = 'schema-result schema-ok';
+          el.innerHTML = `✓ Schema valid — columns: <strong>${cols.join(', ')}</strong>`;
+          document.getElementById('runAnalysisBtn').disabled = false;
+          document.getElementById('runModelEvalBtn').disabled = false;
         } else {
-          el.className = "schema-result schema-err";
-          el.innerHTML = `✗ Missing: <strong>${missing.join(", ")}</strong> — found: ${cols.join(", ")}`;
+          el.className = 'schema-result schema-err';
+          el.innerHTML = `✗ Missing: <strong>${missing.join(', ')}</strong> — found: ${cols.join(', ')}`;
         }
-        // Enable buttons
-        document.getElementById("runAnalysisBtn").disabled = false;
-        document.getElementById("runModelEvalBtn").disabled = false;
       };
       reader.readAsText(file);
     });
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // SPAC TOGGLE
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // SPRC TOGGLE
+    // ═══════════════════════════════════════════════════════════════════════════════
 
-    document.getElementById("spacToggle").addEventListener("click", function () {
+    const spacToggleEl = document.getElementById('spacToggle');
+    spacToggleEl.addEventListener('click', () => {
       spacEnabled = !spacEnabled;
-      this.classList.toggle("on", spacEnabled);
+      spacToggleEl.setAttribute('aria-checked', String(spacEnabled));
+    });
+    spacToggleEl.addEventListener('keydown', e => {
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); spacToggleEl.click(); }
     });
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // ANALYSIS JOB
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // POLLING with exponential backoff + abort
+    // ═══════════════════════════════════════════════════════════════════════════════
 
-    document.getElementById("runAnalysisBtn").addEventListener("click", startAnalysis);
+    async function pollJob(jobId, onProgress, onDone, onFail) {
+      const url = `${API_BASE}/analysis_results/${jobId}`;
+      let delay = 1200;
+      const MAX_DELAY = 8000;
+      const TIMEOUT_MS = 15 * 60 * 1000; // 15 min
+      const start = Date.now();
 
-    async function startAnalysis() {
-      if (!lastSelectedFile) {
-        alert("Please choose a CSV file first.");
-        return;
-      }
-      const modules = MODULES.filter(m => state[m.key]).map(m => m.key);
-      const batchSize = parseInt(document.getElementById("batchSize").value || "32", 10);
+      if (pollController) pollController.abort();
+      pollController = new AbortController();
+      const signal = pollController.signal;
 
-      const fd = new FormData();
-      fd.append("file", lastSelectedFile, lastSelectedFile.name);
-      fd.append("modules", JSON.stringify(modules));
-      fd.append("batch_size", String(batchSize));
-      fd.append("include_spac", spacEnabled ? "true" : "false");
+      while (!signal.aborted) {
+        if (Date.now() - start > TIMEOUT_MS) { onFail('Polling timed out after 15 minutes.'); return; }
+        await new Promise(r => setTimeout(r, delay));
+        if (signal.aborted) break;
 
-      setProgress(0, "Uploading dataset and queuing job...", "running");
-
-      try {
-        const resp = await fetch("http://127.0.0.1:8000/run_analysis", { method: "POST", body: fd });
-        const j = await resp.json();
-        if (!j.job_id) throw new Error(JSON.stringify(j));
-        setProgress(2, `Job ${j.job_id.slice(0, 8)}… queued`, "running");
-        await pollJob(j.job_id);
-      } catch (err) {
-        setProgress(0, "Failed: " + err.message, "failed");
+        try {
+          const res = await fetch(url, { signal });
+          if (res.status === 404) { onFail('Job not found on server.'); return; }
+          const payload = await res.json();
+          onProgress(payload.progress || 0, payload.message || '', payload.status || 'running');
+          if (payload.status === 'done') { onDone(payload.results || payload); return; }
+          if (payload.status === 'failed') { onFail(payload.error || 'Job failed.'); return; }
+          delay = Math.min(delay * 1.4, MAX_DELAY);
+        } catch (err) {
+          if (err.name === 'AbortError') return;
+          onFail('Polling error: ' + err.message); return;
+        }
       }
     }
 
-    async function pollJob(jobId) {
-      const url = `http://127.0.0.1:8000/analysis_results/${jobId}`;
-      for (; ;) {
-        try {
-          const r = await fetch(url);
-          if (r.status === 404) { setProgress(0, "Job not found", "failed"); return; }
-          const payload = await r.json();
-          const pct = payload.progress || 0;
-          const msg = payload.message || "";
-          const status = payload.status || "running";
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // ANALYSIS JOB
+    // ═══════════════════════════════════════════════════════════════════════════════
 
-          setProgress(pct, `${status} — ${msg}`, status);
+    document.getElementById('runAnalysisBtn').addEventListener('click', startAnalysis);
 
-          if (status === "done") {
-            renderResults(payload.results);
-            document.getElementById("rawJson").textContent = JSON.stringify(payload.results, null, 2);
-            return;
-          }
-          if (status === "failed") {
-            setProgress(0, "Failed: " + (payload.error || "unknown"), "failed");
-            return;
-          }
-        } catch (err) {
-          setProgress(0, "Polling error: " + err, "failed");
-          return;
-        }
-        await new Promise(r => setTimeout(r, 1600));
+    async function startAnalysis() {
+      if (!lastSelectedFile) { alert('Please choose a CSV file first.'); return; }
+
+      const modules = availableModules.filter(m => enabledModules[m.key]).map(m => m.key);
+      const batchSize = parseInt(document.getElementById('batchSize').value || '32', 10);
+
+      const fd = new FormData();
+      fd.append('file', lastSelectedFile, lastSelectedFile.name);
+      fd.append('modules', JSON.stringify(modules));
+      fd.append('batch_size', String(batchSize));
+      fd.append('include_spac', spacEnabled ? 'true' : 'false');
+
+      setProgress(0, 'Uploading dataset…', 'running');
+
+      try {
+        const j = await apiFetch(API_BASE, '/run_analysis', { method: 'POST', body: fd });
+        if (!j.job_id) throw new Error('No job_id in response');
+        setProgress(2, `Job ${j.job_id.slice(0, 8)}… queued`, 'running');
+        await pollJob(
+          j.job_id,
+          (pct, msg, status) => setProgress(pct, `${status} — ${msg}`, status),
+          results => { renderResults(results); document.getElementById('rawJson').textContent = JSON.stringify(results, null, 2); },
+          err => setProgress(0, 'Failed: ' + err, 'failed'),
+        );
+      } catch (err) {
+        setProgress(0, 'Error: ' + err.message, 'failed');
       }
     }
 
     function setProgress(pct, msg, cls) {
-      document.getElementById("analysisProgress").textContent = msg;
-      document.getElementById("analysisProgress").className = `status-text ${cls || ""}`;
-      document.getElementById("analysisPercent").textContent = `${pct}%`;
-      document.getElementById("progressBar").style.width = `${pct}%`;
+      document.getElementById('analysisProgress').textContent = msg;
+      document.getElementById('analysisProgress').className = `status-text ${cls || ''}`;
+      document.getElementById('analysisPercent').textContent = `${Math.round(pct)}%`;
+      const bar = document.getElementById('progressBar');
+      bar.style.width = `${pct}%`;
+      document.getElementById('progressBarWrap').setAttribute('aria-valuenow', String(Math.round(pct)));
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // CHART INSTANCES
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // CHART INSTANCES — tracked for proper destroy/redraw
+    // ═══════════════════════════════════════════════════════════════════════════════
 
-    let charts = {};
+    const charts = {};
 
     function destroyChart(id) {
       if (charts[id]) { charts[id].destroy(); delete charts[id]; }
@@ -1502,240 +1989,659 @@ pipeline.process_csv("hinglish.csv", "output.csv")`;
       responsive: true,
       plugins: { legend: { display: false } },
       scales: {
-        x: { grid: { color: "rgba(255,255,255,0.04)" }, ticks: { color: "#555a72", font: { size: 10 } } },
-        y: { grid: { color: "rgba(255,255,255,0.04)" }, ticks: { color: "#555a72", font: { size: 10 } } },
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#555a72', font: { size: 10 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#555a72', font: { size: 10 } } },
       },
     };
 
-    function makeStatCard(label, value, sub) {
+    function makeStatCard(label, value, sub, interp) {
+      const interpHtml = interp ? `<div class="interp-label ${interp.cls}">${escHtml(interp.text)}</div>` : '';
       return `<div class="stat-card">
     <div class="stat-label">${label}</div>
-    <div class="stat-value">${value ?? "—"}</div>
-    ${sub ? `<div class="stat-sub">${sub}</div>` : ""}
+    <div class="stat-value">${value ?? '—'}</div>
+    ${sub ? `<div class="stat-sub">${sub}</div>` : ''}
+    ${interpHtml}
   </div>`;
     }
 
-    function fmt(v, digits = 4) {
-      if (v == null || v !== v) return "—";
-      if (typeof v === "number") return v.toFixed(digits);
-      return String(v);
+    function fmt(v, d = 4) {
+      if (v == null || (typeof v === 'number' && isNaN(v))) return '—';
+      return typeof v === 'number' ? v.toFixed(d) : String(v);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // RENDER RESULTS
-    // ═══════════════════════════════════════════════════════════════════════════
+    function interpretDelta(delta, higherBetter) {
+      if (delta == null || isNaN(delta)) return null;
+      const pos = delta > 0;
+      const good = higherBetter ? pos : !pos;
+      return good
+        ? { cls: '', text: '↑ improvement' }
+        : { cls: 'warn', text: '↓ degradation' };
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // RENDER ANALYSIS RESULTS
+    // ═══════════════════════════════════════════════════════════════════════════════
 
     function renderResults(results) {
       if (!results) return;
-      document.getElementById("resultsGrid").style.display = "flex";
+      document.getElementById('resultsGrid').style.display = 'flex';
 
       const info = results.information_theory || {};
       const spec = results.spectral_analysis || {};
       const stab = results.embedding_stability || {};
       const crl = results.cross_lingual || {};
       const fert = results.fertility_entropy || {};
-      const spac = results.switch_point_attention_collapse;
+      // Backend field renamed: switch_point_attention_collapse -> switch_point_representation_collapse
+      // (the metric never computed transformer attention; see naming_note in the payload).
+      const sprc = results.switch_point_representation_collapse;
 
-      // ── Top stat cards ──────────────────────────────────────────────────────
-      const statCards = document.getElementById("statCards");
-      statCards.innerHTML =
-        makeStatCard("Entropy Δ", fmt(info.entropy_delta, 3), "bits after − before") +
-        makeStatCard("MI Mean", fmt(info.mutual_information_mean, 4), "after preprocessing") +
-        makeStatCard("Vocab Δ", info.vocab_size_after != null
-          ? (info.vocab_size_after - (info.vocab_size_before || 0) > 0 ? "+" : "") + (info.vocab_size_after - (info.vocab_size_before || 0))
-          : "—", "after − before") +
-        makeStatCard("Condition κ(E)", fmt(spec.condition_number, 1), "embedding matrix");
+      // ── Summary stat cards ─────────────────────────────────────────────────────
+      document.getElementById('statCards').innerHTML =
+        makeStatCard('Entropy Δ', fmt(info.entropy_delta, 3), 'bits after − before', interpretDelta(info.entropy_delta, false)) +
+        makeStatCard('MI Mean (proxy)', fmt(info.mutual_information_proxy_mean, 4), 'TF-IDF MI proxy', null) +
+        makeStatCard('Vocab Δ', info.vocab_size_after != null
+          ? (info.vocab_size_after - (info.vocab_size_before || 0) > 0 ? '+' : '') + (info.vocab_size_after - (info.vocab_size_before || 0))
+          : '—', 'after − before', null) +
+        makeStatCard('κ(E)', fmt(spec.condition_number, 1), 'embedding matrix condition', null);
 
-      // ── Info theory chart ───────────────────────────────────────────────────
-      destroyChart("entropy");
-      charts["entropy"] = new Chart(document.getElementById("entropyChart").getContext("2d"), {
-        type: "bar",
+      // ── Information Theory ─────────────────────────────────────────────────────
+      destroyChart('entropy');
+      charts['entropy'] = new Chart(document.getElementById('entropyChart').getContext('2d'), {
+        type: 'bar',
         data: {
-          labels: ["Entropy before", "Entropy after", "MI mean", "ΔI"],
+          labels: ['H before', 'H after', 'MI mean (proxy)', 'ΔI (proxy)'],
           datasets: [{
-            data: [info.entropy_before, info.entropy_after, info.mutual_information_mean, info.mutual_information_delta],
-            backgroundColor: ["#3b82f6", "#00d4aa", "#f59e0b", "#f43f5e"],
+            data: [info.entropy_before, info.entropy_after, info.mutual_information_proxy_mean, info.mutual_information_proxy_delta],
+            backgroundColor: ['#3b82f6', '#00d4aa', '#f59e0b', '#f43f5e'],
             borderRadius: 4,
           }],
         },
-        options: CHART_DEFAULTS,
+        options: { ...CHART_DEFAULTS, plugins: { ...CHART_DEFAULTS.plugins, tooltip: { callbacks: { label: ctx => `${fmt(ctx.raw, 4)} bits` } } } },
       });
 
-      document.getElementById("infoStatCards").innerHTML =
-        makeStatCard("Entropy before", fmt(info.entropy_before, 2), "bits") +
-        makeStatCard("Entropy after", fmt(info.entropy_after, 2), "bits") +
-        makeStatCard("ΔI", fmt(info.mutual_information_delta, 4), "I(X;Y) − I(f(X);Y)") +
-        makeStatCard("Vocab before", info.vocab_size_before ?? "—", "unique tokens") +
-        makeStatCard("Vocab after", info.vocab_size_after ?? "—", "unique tokens") +
-        makeStatCard("MI method", info.mutual_information_method ?? "—", "estimation method");
+      document.getElementById('infoStatCards').innerHTML =
+        makeStatCard('H before', fmt(info.entropy_before, 2), 'bits') +
+        makeStatCard('H after', fmt(info.entropy_after, 2), 'bits', interpretDelta(info.entropy_delta, false)) +
+        makeStatCard('ΔI (proxy)', fmt(info.mutual_information_proxy_delta, 4), 'TF-IDF MI proxy, not strict I(X;Y)') +
+        makeStatCard('Vocab before', info.vocab_size_before ?? '—', 'unique tokens') +
+        makeStatCard('Vocab after', info.vocab_size_after ?? '—', 'unique tokens') +
+        makeStatCard('MI method', info.mutual_information_proxy_method ?? '—', 'estimation method');
 
-      // ── Fertility entropy ───────────────────────────────────────────────────
-      destroyChart("fertility");
-      const fertBins = Array.from({ length: 10 }, (_, i) => ((i / 10) * Math.LN2 / Math.log(2)).toFixed(2));
-      charts["fertility"] = new Chart(document.getElementById("fertilityChart").getContext("2d"), {
-        type: "bar",
+      // ── Fertility ──────────────────────────────────────────────────────────────
+      destroyChart('fertility');
+      charts['fertility'] = new Chart(document.getElementById('fertilityChart').getContext('2d'), {
+        type: 'bar',
         data: {
-          labels: fertBins,
+          labels: Array.from({ length: Math.max((fert.histogram_before || []).length, (fert.histogram_after || []).length) }, (_, i) => i),
           datasets: [
-            { label: "Before", data: fert.histogram_before || [], backgroundColor: "rgba(59,130,246,0.4)", borderColor: "#3b82f6", borderWidth: 1 },
-            { label: "After", data: fert.histogram_after || [], backgroundColor: "rgba(0,212,170,0.4)", borderColor: "#00d4aa", borderWidth: 1 },
+            { label: 'Before', data: fert.histogram_before || [], backgroundColor: 'rgba(59,130,246,0.4)', borderColor: '#3b82f6', borderWidth: 1 },
+            { label: 'After', data: fert.histogram_after || [], backgroundColor: 'rgba(0,212,170,0.4)', borderColor: '#00d4aa', borderWidth: 1 },
           ],
         },
-        options: {
-          ...CHART_DEFAULTS,
-          plugins: {
-            legend: { display: true, labels: { color: "#8b90a8", font: { size: 10 } } },
-          },
-        },
+        options: { ...CHART_DEFAULTS, plugins: { legend: { display: true, labels: { color: '#8b90a8', font: { size: 10 } } } } },
       });
 
-      document.getElementById("fertilityStats").innerHTML =
-        makeStatCard("H_F before", fmt(fert.mean_fertility_entropy_before, 4), "mean fertility entropy") +
-        makeStatCard("H_F after", fmt(fert.mean_fertility_entropy_after, 4), "mean fertility entropy") +
-        makeStatCard("Δ H_F", fmt(fert.delta_fertility_entropy, 4), "positive = more balanced") +
-        makeStatCard("Max H_F", fmt(fert.max_fertility_entropy, 4), "log₂ = 1.0");
+      document.getElementById('fertilityStats').innerHTML =
+        makeStatCard('H_F before', fmt(fert.mean_fertility_entropy_before, 4), 'mean fertility entropy') +
+        makeStatCard('H_F after', fmt(fert.mean_fertility_entropy_after, 4), 'mean fertility entropy', interpretDelta(fert.delta_fertility_entropy, true)) +
+        makeStatCard('Δ H_F', fmt(fert.delta_fertility_entropy, 4), 'positive = more balanced') +
+        makeStatCard('Max H_F', fmt(fert.max_fertility_entropy, 4), 'log₂ = 1.0');
 
-      // ── Spectral ────────────────────────────────────────────────────────────
+      // ── Spectral ───────────────────────────────────────────────────────────────
       const topEigen = spec.top_k_eigenvalues || [];
-      destroyChart("eigen");
-      charts["eigen"] = new Chart(document.getElementById("eigenChart").getContext("2d"), {
-        type: "line",
+      destroyChart('eigen');
+      charts['eigen'] = new Chart(document.getElementById('eigenChart').getContext('2d'), {
+        type: 'line',
         data: {
           labels: topEigen.map((_, i) => i + 1),
-          datasets: [{
-            data: topEigen,
-            borderColor: "#f59e0b",
-            backgroundColor: "rgba(245,158,11,0.1)",
-            fill: true,
-            tension: 0.3,
-            pointRadius: 3,
-          }],
+          datasets: [{ data: topEigen, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.3, pointRadius: 3 }],
         },
         options: CHART_DEFAULTS,
       });
 
-      document.getElementById("spectralStatCards").innerHTML =
-        makeStatCard("Spectral entropy", fmt(spec.spectral_entropy, 4), "eigenvalue uniformity") +
-        makeStatCard("κ(E)", fmt(spec.condition_number, 1), "condition number") +
-        makeStatCard("Spectral decay", fmt(spec.spectral_decay, 4), "PC1 energy share") +
-        makeStatCard("Embed dim", spec.embedding_dim ?? "—", "embedding dimension");
+      document.getElementById('spectralStatCards').innerHTML =
+        makeStatCard('Spectral entropy', fmt(spec.spectral_entropy, 4), 'eigenvalue uniformity') +
+        makeStatCard('κ(E)', fmt(spec.condition_number, 1), 'condition number') +
+        makeStatCard('Spectral decay', fmt(spec.spectral_decay, 4), 'PC1 energy share') +
+        makeStatCard('Embed dim', spec.embedding_dim ?? '—', 'embedding dimension');
 
-      // ── Embedding stability ─────────────────────────────────────────────────
+      // ── Embedding stability ────────────────────────────────────────────────────
       const simCounts = stab.histogram_counts || [];
-      const simBins = (stab.histogram_bins || []).map(v => v.toFixed ? v.toFixed(2) : v);
-      destroyChart("simHist");
-      charts["simHist"] = new Chart(document.getElementById("simHistChart").getContext("2d"), {
-        type: "bar",
+      const simBins = (stab.histogram_bins || []).map(v => v?.toFixed ? v.toFixed(2) : v);
+      destroyChart('simHist');
+      charts['simHist'] = new Chart(document.getElementById('simHistChart').getContext('2d'), {
+        type: 'bar',
         data: {
-          labels: simCounts.map((_, i) => simBins[i] || ""),
-          datasets: [{ data: simCounts, backgroundColor: "rgba(0,212,170,0.45)", borderRadius: 3 }],
+          labels: simCounts.map((_, i) => simBins[i] || ''),
+          datasets: [{ data: simCounts, backgroundColor: 'rgba(0,212,170,0.45)', borderRadius: 3 }],
         },
         options: CHART_DEFAULTS,
       });
 
-      document.getElementById("stabilityStatCards").innerHTML =
-        makeStatCard("Mean cosine", fmt(stab.mean_similarity, 4), "original vs processed") +
-        makeStatCard("Median", fmt(stab.median_similarity, 4), "") +
-        makeStatCard("Std dev", fmt(stab.std_similarity, 4), "drift dispersion") +
-        makeStatCard("Min / Max", `${fmt(stab.min_similarity, 2)} / ${fmt(stab.max_similarity, 2)}`, "");
+      document.getElementById('stabilityStatCards').innerHTML =
+        makeStatCard('Mean cosine', fmt(stab.mean_similarity, 4), 'original vs processed') +
+        makeStatCard('Median', fmt(stab.median_similarity, 4), '') +
+        makeStatCard('Std dev', fmt(stab.std_similarity, 4), 'drift dispersion') +
+        makeStatCard('Min / Max', `${fmt(stab.min_similarity, 2)} / ${fmt(stab.max_similarity, 2)}`, '');
 
-      // ── CRD ─────────────────────────────────────────────────────────────────
-      document.getElementById("crdStats").innerHTML =
-        makeStatCard("CRD", fmt(crl.cross_lingual_representation_distance, 4), "L2 dist EN↔HI centroids") +
-        makeStatCard("Centroid cosine", fmt(crl.cross_lingual_centroid_cosine, 4), "higher = more aligned") +
-        makeStatCard("Silhouette", fmt(crl.silhouette_score, 4), "cluster cohesion") +
-        makeStatCard("EN count", crl.alignment_count_en ?? "—", "EN samples") +
-        makeStatCard("HI count", crl.alignment_count_hi ?? "—", "HI samples") +
-        makeStatCard("EN cohesion", fmt(crl.en_intra_cohesion, 4), "intra-EN cosine") +
-        makeStatCard("HI cohesion", fmt(crl.hi_intra_cohesion, 4), "intra-HI cosine") +
-        makeStatCard("Note", crl.note ? "See note" : "—", crl.note || "");
+      // ── CRD ────────────────────────────────────────────────────────────────────
+      document.getElementById('crdStats').innerHTML =
+        makeStatCard('CRD', fmt(crl.cross_lingual_representation_distance, 4), 'L2 dist EN↔HI centroids') +
+        makeStatCard('Centroid cosine', fmt(crl.cross_lingual_centroid_cosine, 4), 'higher = more aligned') +
+        makeStatCard('Silhouette', fmt(crl.silhouette_score, 4), 'cluster cohesion') +
+        makeStatCard('EN count', crl.alignment_count_en ?? '—', 'EN samples') +
+        makeStatCard('HI count', crl.alignment_count_hi ?? '—', 'HI samples') +
+        makeStatCard('EN cohesion', fmt(crl.en_intra_cohesion, 4), 'intra-EN cosine') +
+        makeStatCard('HI cohesion', fmt(crl.hi_intra_cohesion, 4), 'intra-HI cosine');
 
-      // ── SPAC ────────────────────────────────────────────────────────────────
-      if (spac) {
-        document.getElementById("spacStats").innerHTML =
-          makeStatCard("SPAC score", fmt(spac.spac_score, 4), spac.interpretation || "") +
-          makeStatCard("Switch pts", spac.total_switch_points ?? "—", "total in dataset") +
-          makeStatCard("H̄ at SP", fmt(spac.mean_entropy_at_switch_points, 4), "mean entropy at switch") +
-          makeStatCard("H̄ non-SP", fmt(spac.mean_entropy_at_non_switch_points, 4), "mean entropy elsewhere");
+      // ── SPRC (formerly "SPAC") ────────────────────────────────────────────────
+      if (sprc) {
+        document.getElementById('spacStats').innerHTML =
+          makeStatCard('SPRC score', fmt(sprc.proxy_sprc_score, 4), sprc.interpretation || '') +
+          makeStatCard('Switch pts', sprc.total_switch_points ?? '—', 'total in dataset') +
+          makeStatCard('H̄ at SP', fmt(sprc.mean_entropy_at_switch_points, 4), 'mean entropy at switch') +
+          makeStatCard('H̄ non-SP', fmt(sprc.mean_entropy_at_non_switch_points, 4), 'mean entropy elsewhere');
       }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════════
     // MODEL INFERENCE
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════════
 
-    document.getElementById("runModelEvalBtn").addEventListener("click", evaluateModels);
+    document.getElementById('runModelEvalBtn').addEventListener('click', evaluateModels);
 
     async function evaluateModels() {
-      if (!lastSelectedFile) {
-        alert("Please choose a CSV file first.");
-        return;
-      }
-      const modules = MODULES.filter(m => state[m.key]).map(m => m.key);
-      const models = MODEL_EVAL_MODELS.filter(m => modelEvalState[m.key]).map(m => m.key);
-      if (!models.length) {
-        alert("Select at least one model.");
-        return;
-      }
+      if (!lastSelectedFile) { alert('Please choose a CSV file first.'); return; }
+      const modules = availableModules.filter(m => enabledModules[m.key]).map(m => m.key);
+      const models = availableModelsList.filter(m => modelEvalState[m.key]).map(m => m.key);
+      if (!models.length) { alert('Select at least one model.'); return; }
 
-      const progEl = document.getElementById("modelEvalProgress");
-      const resEl = document.getElementById("modelEvalResults");
-      progEl.textContent = "Queuing...";
-      progEl.className = "status-text running";
-      resEl.textContent = "";
+      const progEl = document.getElementById('modelEvalProgress');
+      const resEl = document.getElementById('modelEvalResults');
+      progEl.textContent = 'Queuing…'; progEl.className = 'status-text running';
+      resEl.textContent = '';
 
       const fd = new FormData();
-      fd.append("file", lastSelectedFile, lastSelectedFile.name);
-      fd.append("modules", JSON.stringify(modules));
-      fd.append("models", JSON.stringify(models));
-      fd.append("batch_size", String(parseInt(document.getElementById("batchSize").value || "32", 10)));
+      fd.append('file', lastSelectedFile, lastSelectedFile.name);
+      // Strip markers from text before sending to model — mandatory
+      fd.append('modules', JSON.stringify(modules));
+      fd.append('models', JSON.stringify(models));
+      fd.append('batch_size', String(parseInt(document.getElementById('batchSize').value || '32', 10)));
+      fd.append('sanitize', 'true'); // tell backend to apply sanitizeModelInput equivalent
 
       try {
-        const resp = await fetch("http://127.0.0.1:8000/run_model_inference", { method: "POST", body: fd });
-        const j = await resp.json();
+        const j = await apiFetch(API_BASE, '/run_model_inference', { method: 'POST', body: fd });
         if (!j.job_id) throw new Error(JSON.stringify(j));
-        progEl.textContent = `Job ${j.job_id.slice(0, 8)}… queued — polling...`;
+        progEl.textContent = `Job ${j.job_id.slice(0, 8)}… polling…`;
 
-        for (; ;) {
-          await new Promise(r => setTimeout(r, 1800));
-          const r2 = await fetch(`http://127.0.0.1:8000/analysis_results/${j.job_id}`);
-          const p = await r2.json();
-          progEl.textContent = `${p.status || "running"} — ${p.progress || 0}% — ${p.message || ""}`;
-
-          if ((p.status || "") === "done") {
-            resEl.textContent = JSON.stringify(p.results, null, 2);
-            progEl.textContent = `Done — MLflow run: ${p.mlflow_run_id || p.job_id}`;
-            progEl.className = "status-text done";
-            return;
-          }
-          if ((p.status || "") === "failed") {
-            resEl.textContent = "Failed: " + (p.error || "unknown");
-            progEl.textContent = "Inference failed";
-            progEl.className = "status-text failed";
-            return;
-          }
-        }
+        await pollJob(
+          j.job_id,
+          (pct, msg, status) => { progEl.textContent = `${status} — ${pct}% — ${msg}`; },
+          results => {
+            resEl.textContent = JSON.stringify(results, null, 2);
+            progEl.textContent = `Done — MLflow run: ${results.mlflow_run_id || j.job_id}`;
+            progEl.className = 'status-text done';
+            renderModelResults(results);
+          },
+          err => { resEl.textContent = err; progEl.textContent = err; progEl.className = 'status-text failed'; },
+        );
       } catch (err) {
-        progEl.textContent = "Error: " + err.message;
-        progEl.className = "status-text failed";
+        progEl.textContent = 'Error: ' + err.message;
+        progEl.className = 'status-text failed';
       }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // COPY JSON
-    // ═══════════════════════════════════════════════════════════════════════════
+    function renderModelResults(results) {
+      const area = document.getElementById('modelResultsArea');
+      area.style.display = 'flex';
 
-    document.getElementById("copyJsonBtn").addEventListener("click", () => {
-      const txt = document.getElementById("rawJson").textContent;
-      navigator.clipboard.writeText(txt).catch(() => { });
+      const models = results.models || {};  // { xlmr: { accuracy, f1, precision, recall, latency_ms, memory_mb }, … }
+      const keys = Object.keys(models);
+      if (!keys.length) return;
+
+      const labels = keys.map(k => (availableModelsList.find(m => m.key === k)?.label || k));
+      const colors = ['#00d4aa', '#3b82f6', '#f59e0b', '#a78bfa', '#f43f5e'];
+      const bgOf = (i, a) => colors[i % colors.length].replace(')', `,${a})`).replace('rgb', 'rgba').replace('#', '').padStart(8, '0');
+
+      const get = (key, field) => models[key]?.[field] ?? null;
+
+      function makeBar(id, label, field, max) {
+        destroyChart(id);
+        const data = keys.map(k => get(k, field));
+        charts[id] = new Chart(document.getElementById(id).getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{ data, backgroundColor: colors.map((c, i) => c + '99'), borderColor: colors, borderWidth: 1, borderRadius: 4 }],
+          },
+          options: {
+            ...CHART_DEFAULTS,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${fmt(ctx.raw, 3)}` } } },
+            scales: { ...CHART_DEFAULTS.scales, y: { ...CHART_DEFAULTS.scales.y, min: 0, max: max || 1 } },
+          },
+        });
+      }
+
+      makeBar('accuracyChart', 'Accuracy', 'accuracy', 1);
+      makeBar('f1Chart', 'F1', 'f1', 1);
+      makeBar('latencyChart', 'Latency', 'latency_ms', null);
+      makeBar('memoryChart', 'Memory MB', 'memory_mb', null);
+
+      // Radar
+      destroyChart('modelRadarChart');
+      charts['modelRadarChart'] = new Chart(document.getElementById('modelRadarChart').getContext('2d'), {
+        type: 'radar',
+        data: {
+          labels: ['Accuracy', 'F1', 'Precision', 'Recall'],
+          datasets: keys.map((k, i) => ({
+            label: labels[i],
+            data: ['accuracy', 'f1', 'precision', 'recall'].map(f => get(k, f) ?? 0),
+            borderColor: colors[i % colors.length],
+            backgroundColor: colors[i % colors.length] + '22',
+            pointBackgroundColor: colors[i % colors.length],
+            borderWidth: 2,
+          })),
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: true, labels: { color: '#8b90a8', font: { size: 10 } } } },
+          scales: { r: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#555a72', font: { size: 9 } }, pointLabels: { color: '#8b90a8', font: { size: 10 } }, min: 0, max: 1 } },
+        },
+      });
+
+      // Table — highlight best value per metric column
+      const fields = ['accuracy', 'f1', 'precision', 'recall', 'latency_ms', 'memory_mb'];
+      const head = document.getElementById('evalTableHead');
+      const body = document.getElementById('evalTableBody');
+      head.innerHTML = '<th>Model</th>' + fields.map(f => `<th>${f.replace('_', ' ')}</th>`).join('');
+      body.innerHTML = '';
+
+      const bests = {};
+      for (const f of fields) {
+        const vals = keys.map(k => get(k, f)).filter(v => v != null);
+        const wantHigh = !f.includes('latency') && !f.includes('memory');
+        bests[f] = wantHigh ? Math.max(...vals) : Math.min(...vals);
+      }
+
+      for (const [i, k] of keys.entries()) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td style="color:${colors[i % colors.length]};font-weight:700;">${escHtml(labels[i])}</td>` +
+          fields.map(f => {
+            const v = get(k, f);
+            const isBest = v != null && v === bests[f];
+            return `<td class="${isBest ? 'best-value' : ''}">${fmt(v, f.includes('ms') || f.includes('mb') ? 1 : 3)}</td>`;
+          }).join('');
+        body.appendChild(tr);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // TAB NAVIGATION — keyboard accessible
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    document.querySelectorAll('.nav-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.nav-tab').forEach(b => { b.setAttribute('aria-selected', 'false'); });
+        document.querySelectorAll('[role="tabpanel"]').forEach(p => p.classList.remove('active'));
+        btn.setAttribute('aria-selected', 'true');
+        document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+      });
+      btn.addEventListener('keydown', e => {
+        const tabs = [...document.querySelectorAll('.nav-tab')];
+        const idx = tabs.indexOf(btn);
+        if (e.key === 'ArrowRight') { e.preventDefault(); tabs[(idx + 1) % tabs.length].click(); tabs[(idx + 1) % tabs.length].focus(); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); tabs[(idx - 1 + tabs.length) % tabs.length].click(); tabs[(idx - 1 + tabs.length) % tabs.length].focus(); }
+      });
     });
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // INIT
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // MISC CONTROLS
+    // ═══════════════════════════════════════════════════════════════════════════════
 
-    document.getElementById("inputText").addEventListener("input", run);
-    run();
+    document.getElementById('processBtn').addEventListener('click', process);
+    document.getElementById('inputText').addEventListener('input', process);
+
+    document.getElementById('resetModulesBtn').addEventListener('click', () => {
+      availableModules.forEach(m => {
+        enabledModules[m.key] = false;
+        const tog = document.querySelector(`.toggle[data-key="${m.key}"]`);
+        if (tog) {
+          tog.setAttribute('aria-checked', 'false');
+          tog.closest('.module-row')?.classList.remove('active');
+        }
+      });
+      validatePipeline();
+      process();
+    });
+
+    document.getElementById('copyJsonBtn').addEventListener('click', async () => {
+      const txt = document.getElementById('rawJson').textContent;
+      try { await navigator.clipboard.writeText(txt); } catch { }
+    });
+    document.getElementById('copyModelJsonBtn').addEventListener('click', async () => {
+      const txt = document.getElementById('modelEvalResults').textContent;
+      try { await navigator.clipboard.writeText(txt); } catch { }
+    });
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // FIX 6 — MODULE PARAMETER EDITOR
+    // Renders editable fields for each active module using param metadata
+    // returned by /available_modules (each module may include a "params" array).
+    // Schema per param: { name, label, type, default, min?, max?, options? }
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    function renderParamEditor() {
+      const card = document.getElementById('paramEditorCard');
+      const body = document.getElementById('paramEditorBody');
+      const active = availableModules.filter(m => enabledModules[m.key] && m.params?.length);
+
+      if (!active.length) { card.style.display = 'none'; return; }
+      card.style.display = 'block';
+      body.innerHTML = '';
+
+      for (const mod of active) {
+        const section = document.createElement('div');
+        section.style.cssText = 'border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;';
+
+        const hdr = document.createElement('div');
+        hdr.style.cssText = 'padding:8px 12px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:0.75rem;font-weight:600;color:var(--ink2);';
+        hdr.textContent = mod.label;
+        section.appendChild(hdr);
+
+        const grid = document.createElement('div');
+        grid.style.cssText = 'padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;';
+
+        for (const param of mod.params) {
+          const wrap = document.createElement('div');
+          const labelEl = document.createElement('label');
+          labelEl.style.cssText = 'font-size:0.7rem;color:var(--ink3);display:block;margin-bottom:4px;font-family:var(--font-mono);';
+          labelEl.textContent = param.label || param.name;
+          labelEl.htmlFor = `param-${mod.key}-${param.name}`;
+          wrap.appendChild(labelEl);
+
+          let input;
+          if (param.type === 'bool') {
+            input = document.createElement('div');
+            const tog = document.createElement('div');
+            tog.className = 'toggle';
+            tog.id = `param-${mod.key}-${param.name}`;
+            const currentVal = moduleParams[mod.key]?.[param.name] ?? param.default;
+            if (currentVal) tog.setAttribute('aria-checked', 'true');
+            else tog.setAttribute('aria-checked', 'false');
+            tog.setAttribute('role', 'switch');
+            tog.setAttribute('tabindex', '0');
+            tog.setAttribute('aria-label', param.label || param.name);
+            tog.innerHTML = '<div class="toggle-knob"></div>';
+            const updateBool = () => {
+              const next = tog.getAttribute('aria-checked') !== 'true';
+              tog.setAttribute('aria-checked', String(next));
+              if (!moduleParams[mod.key]) moduleParams[mod.key] = {};
+              if (next !== param.default) moduleParams[mod.key][param.name] = next;
+              else delete moduleParams[mod.key][param.name];
+              updatePyConfig(availableModules.filter(m => enabledModules[m.key]).map(m => m.key));
+            };
+            tog.addEventListener('click', updateBool);
+            tog.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); updateBool(); } });
+            input.appendChild(tog);
+          } else if (param.type === 'select' && param.options) {
+            input = document.createElement('select');
+            input.id = `param-${mod.key}-${param.name}`;
+            input.style.cssText = 'background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--ink);padding:6px 8px;font-size:0.78rem;font-family:var(--font-mono);width:100%;';
+            const currentVal = moduleParams[mod.key]?.[param.name] ?? param.default;
+            for (const opt of param.options) {
+              const o = document.createElement('option');
+              o.value = o.textContent = opt;
+              if (opt === currentVal) o.selected = true;
+              input.appendChild(o);
+            }
+            input.addEventListener('change', () => {
+              if (!moduleParams[mod.key]) moduleParams[mod.key] = {};
+              if (input.value !== String(param.default)) moduleParams[mod.key][param.name] = input.value;
+              else delete moduleParams[mod.key][param.name];
+              updatePyConfig(availableModules.filter(m => enabledModules[m.key]).map(m => m.key));
+            });
+          } else {
+            // number or text
+            input = document.createElement('input');
+            input.id = `param-${mod.key}-${param.name}`;
+            input.type = param.type === 'float' || param.type === 'int' ? 'number' : 'text';
+            input.value = moduleParams[mod.key]?.[param.name] ?? param.default ?? '';
+            if (param.min != null) input.min = param.min;
+            if (param.max != null) input.max = param.max;
+            if (param.step != null) input.step = param.step;
+            else if (param.type === 'float') input.step = '0.01';
+            input.style.cssText = 'width:100%;';
+            input.addEventListener('input', () => {
+              const raw = input.type === 'number' ? parseFloat(input.value) : input.value;
+              if (!moduleParams[mod.key]) moduleParams[mod.key] = {};
+              if (raw !== param.default) moduleParams[mod.key][param.name] = raw;
+              else delete moduleParams[mod.key][param.name];
+              updatePyConfig(availableModules.filter(m => enabledModules[m.key]).map(m => m.key));
+            });
+          }
+
+          wrap.appendChild(input instanceof HTMLElement ? input : input);
+          grid.appendChild(wrap);
+        }
+        section.appendChild(grid);
+        body.appendChild(section);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // FIX 7 — EXPERIMENT HISTORY (IndexedDB, localStorage fallback)
+    // Each run stores: { id, timestamp, modules, moduleParams, metrics? }
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    const HISTORY_STORE = 'hinglish_experiments';
+    const HISTORY_KEY = 'hinglish_experiment_history'; // localStorage fallback key
+
+    async function openHistoryDB() {
+      return new Promise((resolve, reject) => {
+        if (!window.indexedDB) { resolve(null); return; }
+        const req = indexedDB.open('HinglishToolkit', 1);
+        req.onupgradeneeded = e => e.target.result.createObjectStore(HISTORY_STORE, { keyPath: 'id' });
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror = () => resolve(null);  // fall through to localStorage
+      });
+    }
+
+    async function saveExperiment(entry) {
+      const db = await openHistoryDB();
+      if (db) {
+        const tx = db.transaction(HISTORY_STORE, 'readwrite');
+        tx.objectStore(HISTORY_STORE).put(entry);
+      } else {
+        // localStorage fallback
+        try {
+          const existing = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+          existing.unshift(entry);
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(existing.slice(0, 50)));
+        } catch { }
+      }
+      renderHistory();
+    }
+
+    async function loadAllExperiments() {
+      const db = await openHistoryDB();
+      if (db) {
+        return new Promise(resolve => {
+          const tx = db.transaction(HISTORY_STORE, 'readonly');
+          const req = tx.objectStore(HISTORY_STORE).getAll();
+          req.onsuccess = e => resolve((e.target.result || []).sort((a, b) => b.timestamp - a.timestamp));
+          req.onerror = () => resolve([]);
+        });
+      }
+      try {
+        return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      } catch { return []; }
+    }
+
+    async function clearHistory() {
+      const db = await openHistoryDB();
+      if (db) {
+        const tx = db.transaction(HISTORY_STORE, 'readwrite');
+        tx.objectStore(HISTORY_STORE).clear();
+      } else {
+        localStorage.removeItem(HISTORY_KEY);
+      }
+      renderHistory();
+    }
+
+    async function renderHistory() {
+      const list = document.getElementById('historyList');
+      const runs = await loadAllExperiments();
+      if (!runs.length) {
+        list.innerHTML = '<div class="status-text" style="padding:6px 0;">No experiments recorded yet.</div>';
+        return;
+      }
+      list.innerHTML = runs.slice(0, 30).map(r => {
+        const dt = new Date(r.timestamp).toLocaleString();
+        const mods = (r.modules || []).join(', ') || 'none';
+        const metrics = r.metrics
+          ? Object.entries(r.metrics).map(([k, v]) => `${k}: ${typeof v === 'number' ? v.toFixed(3) : v}`).join(' · ')
+          : '';
+        return `<div style="padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);font-size:0.75rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-family:var(--font-mono);color:var(--ink2);">${escHtml(dt)}</span>
+        <button onclick="restoreExperiment('${escHtml(r.id)}')" class="btn btn-ghost" style="padding:3px 8px;font-size:0.7rem;">Restore</button>
+      </div>
+      <div style="color:var(--ink3);margin-top:2px;">Modules: <span style="color:var(--ink);">${escHtml(mods)}</span></div>
+      ${metrics ? `<div style="color:var(--teal);font-family:var(--font-mono);font-size:0.7rem;margin-top:2px;">${escHtml(metrics)}</div>` : ''}
+    </div>`;
+      }).join('');
+    }
+
+    async function restoreExperiment(id) {
+      const runs = await loadAllExperiments();
+      const run = runs.find(r => r.id === id);
+      if (!run) return;
+
+      // Disable all first
+      availableModules.forEach(m => {
+        enabledModules[m.key] = false;
+        const tog = document.querySelector(`.toggle[data-key="${m.key}"]`);
+        if (tog) { tog.setAttribute('aria-checked', 'false'); tog.closest('.module-row')?.classList.remove('active'); }
+      });
+
+      // Restore enabled modules
+      for (const key of (run.modules || [])) {
+        if (enabledModules.hasOwnProperty(key)) {
+          enabledModules[key] = true;
+          const tog = document.querySelector(`.toggle[data-key="${key}"]`);
+          if (tog) { tog.setAttribute('aria-checked', 'true'); tog.closest('.module-row')?.classList.add('active'); }
+        }
+      }
+
+      // Restore params
+      Object.assign(moduleParams, run.moduleParams || {});
+      renderParamEditor();
+      validatePipeline();
+      updatePyConfig(run.modules || []);
+    }
+
+    // Record an experiment when process() succeeds
+    async function recordCurrentExperiment(metrics) {
+      const active = availableModules.filter(m => enabledModules[m.key]).map(m => m.key);
+      if (!active.length) return;
+      await saveExperiment({
+        id: `exp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        timestamp: Date.now(),
+        modules: active,
+        moduleParams: JSON.parse(JSON.stringify(moduleParams)),
+        metrics: metrics || null,
+      });
+    }
+
+    document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
+      if (confirm('Clear all experiment history?')) await clearHistory();
+    });
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // FIX 8 — PIPELINE EXPORT / IMPORT
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    document.getElementById('exportPipelineBtn').addEventListener('click', () => {
+      const active = availableModules.filter(m => enabledModules[m.key]).map(m => m.key);
+      const payload = {
+        version: '2.0',
+        exported_at: new Date().toISOString(),
+        modules: active,
+        module_params: JSON.parse(JSON.stringify(moduleParams)),
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `hinglish_pipeline_${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('importPipelineFile').addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const payload = JSON.parse(e.target.result);
+          if (!payload.modules || !Array.isArray(payload.modules)) {
+            alert('Invalid pipeline file: missing "modules" array.'); return;
+          }
+
+          // Disable all
+          availableModules.forEach(m => {
+            enabledModules[m.key] = false;
+            const tog = document.querySelector(`.toggle[data-key="${m.key}"]`);
+            if (tog) { tog.setAttribute('aria-checked', 'false'); tog.closest('.module-row')?.classList.remove('active'); }
+          });
+
+          // Apply imported
+          const unknown = [];
+          for (const key of payload.modules) {
+            if (enabledModules.hasOwnProperty(key)) {
+              enabledModules[key] = true;
+              const tog = document.querySelector(`.toggle[data-key="${key}"]`);
+              if (tog) { tog.setAttribute('aria-checked', 'true'); tog.closest('.module-row')?.classList.add('active'); }
+            } else {
+              unknown.push(key);
+            }
+          }
+
+          // Restore params
+          Object.keys(moduleParams).forEach(k => delete moduleParams[k]);
+          Object.assign(moduleParams, payload.module_params || {});
+
+          if (unknown.length) {
+            alert(`Warning: the following modules from the import are not available in this backend and were skipped: ${unknown.join(', ')}`);
+          }
+
+          renderParamEditor();
+          validatePipeline();
+          updatePyConfig(payload.modules.filter(k => enabledModules[k]));
+          process();
+        } catch (err) {
+          alert('Failed to parse pipeline file: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+      this.value = ''; // allow re-importing same file
+    });
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // FIX 9 — endpoint is /system_info (already consistent — no /system/status used)
+    // Confirmed: all apiFetch calls use /system_info. No action needed.
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    (async () => {
+      await Promise.all([loadSystemInfo(), loadModules(), loadModelList()]);
+      await renderHistory();
+      updatePyConfig([]);
+    })();
   </script>
 </body>
 

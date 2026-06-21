@@ -1,0 +1,310 @@
+2026-06-19 18:12:25 INFO     job_manager — Recovered 24 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-19 18:12:25 INFO     __main__ — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-19 18:15:29 INFO     job_manager — Recovered 24 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-19 18:15:29 INFO     api — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-19 18:16:40 INFO     job_manager — Recovered 24 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-19 18:16:40 INFO     api — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-19 18:21:09 INFO     api — Starting analysis job | job_id='9a36e6646fa047158d4f7863e4a2e975' modules=[]
+2026-06-19 18:21:10 ERROR    api — Analysis job failed | error="'processed_text'" job_id='9a36e6646fa047158d4f7863e4a2e975'
+Traceback (most recent call last):
+  File "D:\PreEvak\venv\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'processed_text'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\PreEvak\hopeful\api.py", line 236, in _run_analysis_job
+    evaluator = CachedAnalyticalEvaluator(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\cached_analytical_evaluator.py", line 113, in __init__
+    df_processed = add_model_input_column(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\text_sanitizer.py", line 141, in add_model_input_column
+    df[model_input_col] = df[processed_col].astype(str).apply(clean_for_model_text)
+                          ~~^^^^^^^^^^^^^^^
+  File "D:\PreEvak\venv\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\venv\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'processed_text'
+2026-06-19 18:31:28 INFO     job_manager — Recovered 25 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-19 18:31:28 INFO     api — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-20 12:16:03 INFO     job_manager — Recovered 25 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-20 12:16:03 INFO     api — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-20 12:32:42 INFO     job_manager — Recovered 25 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-20 12:32:43 INFO     api — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-20 12:35:36 INFO     job_manager — Recovered 25 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-20 12:35:37 INFO     api — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-20 12:39:18 INFO     job_manager — Recovered 25 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-20 12:39:18 INFO     api — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-20 12:50:45 INFO     job_manager — Recovered 25 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-20 12:50:45 INFO     api — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-20 12:51:27 INFO     httpx — HTTP Request: HEAD https://huggingface.co/xlm-roberta-base/resolve/main/config.json "HTTP/1.1 200 OK"
+2026-06-20 12:51:27 WARNING  huggingface_hub.utils._http — Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-06-20 12:51:27 INFO     httpx — HTTP Request: GET https://huggingface.co/xlm-roberta-base/resolve/main/config.json "HTTP/1.1 200 OK"
+2026-06-20 12:51:28 INFO     httpx — HTTP Request: HEAD https://huggingface.co/xlm-roberta-base/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-06-20 12:51:28 INFO     httpx — HTTP Request: GET https://huggingface.co/xlm-roberta-base/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-06-20 12:51:28 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/xlm-roberta-base/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-06-20 12:51:29 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/FacebookAI/xlm-roberta-base/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-06-20 12:51:29 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/xlm-roberta-base/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-06-20 12:51:29 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/FacebookAI/xlm-roberta-base/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-06-20 12:51:30 INFO     httpx — HTTP Request: HEAD https://huggingface.co/xlm-roberta-base/resolve/main/sentencepiece.bpe.model "HTTP/1.1 200 OK"
+2026-06-20 12:51:30 INFO     httpx — HTTP Request: GET https://huggingface.co/xlm-roberta-base/resolve/main/sentencepiece.bpe.model "HTTP/1.1 200 OK"
+2026-06-20 12:51:31 INFO     httpx — HTTP Request: HEAD https://huggingface.co/xlm-roberta-base/resolve/main/tokenizer.json "HTTP/1.1 200 OK"
+2026-06-20 12:51:31 INFO     httpx — HTTP Request: GET https://huggingface.co/xlm-roberta-base/resolve/main/tokenizer.json "HTTP/1.1 200 OK"
+2026-06-20 12:51:32 INFO     httpx — HTTP Request: HEAD https://huggingface.co/xlm-roberta-base/resolve/main/added_tokens.json "HTTP/1.1 404 Not Found"
+2026-06-20 12:51:33 INFO     httpx — HTTP Request: HEAD https://huggingface.co/xlm-roberta-base/resolve/main/special_tokens_map.json "HTTP/1.1 404 Not Found"
+2026-06-20 12:51:33 INFO     httpx — HTTP Request: HEAD https://huggingface.co/xlm-roberta-base/resolve/main/chat_template.jinja "HTTP/1.1 404 Not Found"
+2026-06-20 12:51:39 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/xlm-roberta-base "HTTP/1.1 307 Temporary Redirect"
+2026-06-20 12:51:39 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/FacebookAI/xlm-roberta-base "HTTP/1.1 200 OK"
+2026-06-20 12:51:39 ERROR    api — Process failed | error="ContextAwareSentencePieceDropout requires a tokenizer that exposes a '.sp_model' attribute (i.e. a SentencePiece-backed tokenizer such as 'xlm-roberta-base'), but 'xlm-roberta-base' does not.  This module will not fall back silently to alternative tokenizers; please supply a compatible model ID."
+Traceback (most recent call last):
+  File "D:\PreEvak\hopeful\api.py", line 564, in process_text
+    pipeline = _get_pipeline(modules)
+               ^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\api.py", line 165, in _get_pipeline
+    return build_pipeline(**kwargs) if kwargs else None
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\combined_preprocessing_pipeline.py", line 875, in build_pipeline
+    return CombinedPreprocessingPipeline(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\combined_preprocessing_pipeline.py", line 310, in __init__
+    self._modules: dict[str, Any] = self._build_modules()
+                                    ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\combined_preprocessing_pipeline.py", line 476, in _build_modules
+    modules[key] = cls(enabled=True, **config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 21, in __init__
+  File "D:\PreEvak\hopeful\_base.py", line 377, in __post_init__
+    self._setup()
+  File "D:\PreEvak\hopeful\context_aware_sentencepiece_dropout.py", line 161, in _setup
+    self._tokenizer = self._load_tokenizer()
+                      ^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\context_aware_sentencepiece_dropout.py", line 177, in _load_tokenizer
+    raise RuntimeError(
+RuntimeError: ContextAwareSentencePieceDropout requires a tokenizer that exposes a '.sp_model' attribute (i.e. a SentencePiece-backed tokenizer such as 'xlm-roberta-base'), but 'xlm-roberta-base' does not.  This module will not fall back silently to alternative tokenizers; please supply a compatible model ID.
+2026-06-20 12:51:40 INFO     httpx — HTTP Request: HEAD https://huggingface.co/xlm-roberta-base/resolve/main/config.json "HTTP/1.1 200 OK"
+2026-06-20 12:51:40 INFO     httpx — HTTP Request: HEAD https://huggingface.co/xlm-roberta-base/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-06-20 12:51:40 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/xlm-roberta-base/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-06-20 12:51:41 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/FacebookAI/xlm-roberta-base/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-06-20 12:51:41 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/xlm-roberta-base/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-06-20 12:51:41 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/FacebookAI/xlm-roberta-base/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-06-20 12:51:47 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/xlm-roberta-base "HTTP/1.1 307 Temporary Redirect"
+2026-06-20 12:51:47 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/FacebookAI/xlm-roberta-base "HTTP/1.1 200 OK"
+2026-06-20 12:51:47 ERROR    api — Process failed | error="ContextAwareSentencePieceDropout requires a tokenizer that exposes a '.sp_model' attribute (i.e. a SentencePiece-backed tokenizer such as 'xlm-roberta-base'), but 'xlm-roberta-base' does not.  This module will not fall back silently to alternative tokenizers; please supply a compatible model ID."
+Traceback (most recent call last):
+  File "D:\PreEvak\hopeful\api.py", line 564, in process_text
+    pipeline = _get_pipeline(modules)
+               ^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\api.py", line 165, in _get_pipeline
+    return build_pipeline(**kwargs) if kwargs else None
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\combined_preprocessing_pipeline.py", line 875, in build_pipeline
+    return CombinedPreprocessingPipeline(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\combined_preprocessing_pipeline.py", line 310, in __init__
+    self._modules: dict[str, Any] = self._build_modules()
+                                    ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\combined_preprocessing_pipeline.py", line 476, in _build_modules
+    modules[key] = cls(enabled=True, **config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 21, in __init__
+  File "D:\PreEvak\hopeful\_base.py", line 377, in __post_init__
+    self._setup()
+  File "D:\PreEvak\hopeful\context_aware_sentencepiece_dropout.py", line 161, in _setup
+    self._tokenizer = self._load_tokenizer()
+                      ^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\context_aware_sentencepiece_dropout.py", line 177, in _load_tokenizer
+    raise RuntimeError(
+RuntimeError: ContextAwareSentencePieceDropout requires a tokenizer that exposes a '.sp_model' attribute (i.e. a SentencePiece-backed tokenizer such as 'xlm-roberta-base'), but 'xlm-roberta-base' does not.  This module will not fall back silently to alternative tokenizers; please supply a compatible model ID.
+2026-06-20 12:51:48 INFO     httpx — HTTP Request: HEAD https://huggingface.co/xlm-roberta-base/resolve/main/config.json "HTTP/1.1 200 OK"
+2026-06-20 12:51:48 INFO     httpx — HTTP Request: HEAD https://huggingface.co/xlm-roberta-base/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-06-20 12:51:49 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/xlm-roberta-base/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-06-20 12:51:49 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/FacebookAI/xlm-roberta-base/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-06-20 12:51:49 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/xlm-roberta-base/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-06-20 12:51:49 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/FacebookAI/xlm-roberta-base/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-06-20 12:51:54 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/xlm-roberta-base "HTTP/1.1 307 Temporary Redirect"
+2026-06-20 12:51:54 INFO     httpx — HTTP Request: GET https://huggingface.co/api/models/FacebookAI/xlm-roberta-base "HTTP/1.1 200 OK"
+2026-06-20 12:51:54 ERROR    api — Process failed | error="ContextAwareSentencePieceDropout requires a tokenizer that exposes a '.sp_model' attribute (i.e. a SentencePiece-backed tokenizer such as 'xlm-roberta-base'), but 'xlm-roberta-base' does not.  This module will not fall back silently to alternative tokenizers; please supply a compatible model ID."
+Traceback (most recent call last):
+  File "D:\PreEvak\hopeful\api.py", line 564, in process_text
+    pipeline = _get_pipeline(modules)
+               ^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\api.py", line 165, in _get_pipeline
+    return build_pipeline(**kwargs) if kwargs else None
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\combined_preprocessing_pipeline.py", line 875, in build_pipeline
+    return CombinedPreprocessingPipeline(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\combined_preprocessing_pipeline.py", line 310, in __init__
+    self._modules: dict[str, Any] = self._build_modules()
+                                    ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\combined_preprocessing_pipeline.py", line 476, in _build_modules
+    modules[key] = cls(enabled=True, **config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 21, in __init__
+  File "D:\PreEvak\hopeful\_base.py", line 377, in __post_init__
+    self._setup()
+  File "D:\PreEvak\hopeful\context_aware_sentencepiece_dropout.py", line 161, in _setup
+    self._tokenizer = self._load_tokenizer()
+                      ^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\context_aware_sentencepiece_dropout.py", line 177, in _load_tokenizer
+    raise RuntimeError(
+RuntimeError: ContextAwareSentencePieceDropout requires a tokenizer that exposes a '.sp_model' attribute (i.e. a SentencePiece-backed tokenizer such as 'xlm-roberta-base'), but 'xlm-roberta-base' does not.  This module will not fall back silently to alternative tokenizers; please supply a compatible model ID.
+2026-06-20 12:55:54 INFO     job_manager — Recovered 25 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-20 12:55:54 INFO     api — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-20 13:03:36 INFO     job_manager — Recovered 25 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-20 13:03:36 INFO     api — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-20 13:05:53 INFO     api — Starting analysis job | job_id='9ff4a803b794469c851fac48b19438f0' modules=['phonetic_normalization', 'language_aware_normalization', 'switch_point_encoding']
+2026-06-20 13:05:57 INFO     model_manager — ModelManager initialized on device=cpu
+2026-06-20 13:12:10 INFO     model_manager — load_sentence_transformer started | model_name='paraphrase-multilingual-MiniLM-L12-v2' operation='load_sentence_transformer'
+2026-06-20 13:12:21 WARNING  huggingface_hub.utils._http — '(MaxRetryError('HTTPSConnectionPool(host=\'huggingface.co\', port=443): Max retries exceeded with url: /sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2/resolve/main/modules.json (Caused by NameResolutionError("HTTPSConnection(host=\'huggingface.co\', port=443): Failed to resolve \'huggingface.co\' ([Errno 11001] getaddrinfo failed)"))'), '(Request ID: e3715a69-749a-4747-918a-f53697fa9aa5)')' thrown while requesting HEAD https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2/resolve/main/./modules.json
+2026-06-20 13:12:21 WARNING  huggingface_hub.utils._http — Retrying in 1s [Retry 1/5].
+2026-06-20 13:12:25 INFO     sentence_transformers.base.model — Loading SentenceTransformer model from sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2.
+2026-06-20 13:13:16 INFO     model_manager — load_sentence_transformer completed | elapsed_seconds=65.6304 model_name='paraphrase-multilingual-MiniLM-L12-v2' operation='load_sentence_transformer'
+2026-06-20 13:16:38 ERROR    api — Analysis job failed | error="job_manager.JobManager.mark_done() got multiple values for keyword argument 'results'" job_id='9ff4a803b794469c851fac48b19438f0'
+Traceback (most recent call last):
+  File "D:\PreEvak\hopeful\api.py", line 267, in _run_analysis_job
+    job_manager.mark_done(job_id, results=results, **payload)
+TypeError: job_manager.JobManager.mark_done() got multiple values for keyword argument 'results'
+2026-06-20 13:19:27 INFO     job_manager — Recovered 26 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-20 13:19:27 INFO     api — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-20 13:20:23 INFO     api — Starting analysis job | job_id='cb61e6edd37b4fb5a5a88a63d1fa760c' modules=['phonetic_normalization', 'balanced_tokenization', 'language_identification_tagging']
+2026-06-20 13:20:23 ERROR    api — Analysis job failed | error="'frozenset' object has no attribute 'items'" job_id='cb61e6edd37b4fb5a5a88a63d1fa760c'
+Traceback (most recent call last):
+  File "D:\PreEvak\hopeful\api.py", line 219, in _run_analysis_job
+    pipeline = _get_pipeline(effective_modules)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\api.py", line 165, in _get_pipeline
+    return build_pipeline(**kwargs) if kwargs else None
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\combined_preprocessing_pipeline.py", line 875, in build_pipeline
+    return CombinedPreprocessingPipeline(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\combined_preprocessing_pipeline.py", line 310, in __init__
+    self._modules: dict[str, Any] = self._build_modules()
+                                    ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\combined_preprocessing_pipeline.py", line 476, in _build_modules
+    modules[key] = cls(enabled=True, **config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 12, in __init__
+  File "D:\PreEvak\hopeful\_base.py", line 377, in __post_init__
+    self._setup()
+  File "D:\PreEvak\hopeful\balanced_tokenizn.py", line 552, in _setup
+    for k, v in HINGLISH_LEXICON.items() if str(k).strip()},
+                ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'frozenset' object has no attribute 'items'
+2026-06-20 13:25:51 INFO     job_manager — Recovered 27 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-20 13:25:51 INFO     api — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-20 13:27:18 INFO     api — Starting analysis job | job_id='82d6f9cff67f4fba8a96edc03557215e' modules=['language_aware_normalization', 'context_aware_subword_sampling', 'language_identification_tagging']
+2026-06-20 13:27:23 ERROR    api — Analysis job failed | error='ContextAwareSentencePieceDropout must implement _process_token()' job_id='82d6f9cff67f4fba8a96edc03557215e'
+Traceback (most recent call last):
+  File "D:\PreEvak\hopeful\api.py", line 231, in _run_analysis_job
+    processed = pipeline.process_dataframe(df, text_col="text", output_col="processed_text") if pipeline else df.copy()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\combined_preprocessing_pipeline.py", line 650, in process_dataframe
+    out[output_col] = out[current_col].astype(str).apply(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\venv\Lib\site-packages\pandas\core\series.py", line 4943, in apply
+    ).apply()
+      ^^^^^^^
+  File "D:\PreEvak\venv\Lib\site-packages\pandas\core\apply.py", line 1422, in apply
+    return self.apply_standard()
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\venv\Lib\site-packages\pandas\core\apply.py", line 1502, in apply_standard
+    mapped = obj._map_values(
+             ^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\venv\Lib\site-packages\pandas\core\base.py", line 925, in _map_values
+    return algorithms.map_array(arr, mapper, na_action=na_action, convert=convert)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\venv\Lib\site-packages\pandas\core\algorithms.py", line 1743, in map_array
+    return lib.map_infer(values, mapper, convert=convert)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pandas/_libs/lib.pyx", line 2999, in pandas._libs.lib.map_infer
+  File "D:\PreEvak\hopeful\_base.py", line 407, in process
+    processed.append(self._process_token(tok))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\_base.py", line 385, in _process_token
+    raise NotImplementedError(
+NotImplementedError: ContextAwareSentencePieceDropout must implement _process_token()
+2026-06-20 13:27:51 INFO     api — Starting analysis job | job_id='e3d1cdef9bba47489cba73c43e0a9340' modules=['language_aware_normalization', 'script_unification', 'language_identification_tagging']
+2026-06-20 13:27:54 INFO     model_manager — ModelManager initialized on device=cpu
+2026-06-20 13:33:24 INFO     model_manager — load_sentence_transformer started | model_name='paraphrase-multilingual-MiniLM-L12-v2' operation='load_sentence_transformer'
+2026-06-20 13:33:25 INFO     sentence_transformers.base.model — Loading SentenceTransformer model from sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2.
+2026-06-20 13:33:32 INFO     model_manager — load_sentence_transformer completed | elapsed_seconds=8.188 model_name='paraphrase-multilingual-MiniLM-L12-v2' operation='load_sentence_transformer'
+2026-06-20 13:35:15 ERROR    api — Analysis job failed | error="JobManager.mark_done() got multiple values for argument 'job_id'" job_id='e3d1cdef9bba47489cba73c43e0a9340'
+Traceback (most recent call last):
+  File "D:\PreEvak\hopeful\api.py", line 267, in _run_analysis_job
+    job_manager.mark_done(job_id, **payload)
+TypeError: JobManager.mark_done() got multiple values for argument 'job_id'
+2026-06-20 14:08:27 INFO     job_manager — Recovered 29 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-20 14:08:27 INFO     api — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-20 14:08:55 INFO     api — Starting analysis job | job_id='baeb4cdf94884c1d832633b64ffbb1b1' modules=['phonetic_normalization', 'transliteration', 'switch_point_encoding']
+2026-06-20 14:09:00 INFO     model_manager — ModelManager initialized on device=cpu
+2026-06-20 14:13:23 INFO     model_manager — load_sentence_transformer started | model_name='paraphrase-multilingual-MiniLM-L12-v2' operation='load_sentence_transformer'
+2026-06-20 14:13:25 INFO     sentence_transformers.base.model — Loading SentenceTransformer model from sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2.
+2026-06-20 14:13:31 INFO     model_manager — load_sentence_transformer completed | elapsed_seconds=8.3866 model_name='paraphrase-multilingual-MiniLM-L12-v2' operation='load_sentence_transformer'
+2026-06-20 20:57:31 INFO     job_manager — Recovered 30 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-20 20:57:31 INFO     api — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-20 20:58:16 INFO     api — Starting analysis job | job_id='821f414134a744e0b816f9cd94aefc0f' modules=['phonetic_normalization', 'script_unification', 'balanced_tokenization']
+2026-06-20 20:58:17 ERROR    api — Analysis job failed | error="'frozenset' object has no attribute 'items'" job_id='821f414134a744e0b816f9cd94aefc0f'
+Traceback (most recent call last):
+  File "D:\PreEvak\hopeful\api.py", line 219, in _run_analysis_job
+    pipeline = _get_pipeline(effective_modules)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\api.py", line 165, in _get_pipeline
+    return build_pipeline(**kwargs) if kwargs else None
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\combined_preprocessing_pipeline.py", line 875, in build_pipeline
+    return CombinedPreprocessingPipeline(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\combined_preprocessing_pipeline.py", line 310, in __init__
+    self._modules: dict[str, Any] = self._build_modules()
+                                    ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PreEvak\hopeful\combined_preprocessing_pipeline.py", line 476, in _build_modules
+    modules[key] = cls(enabled=True, **config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 12, in __init__
+  File "D:\PreEvak\hopeful\_base.py", line 377, in __post_init__
+    self._setup()
+  File "D:\PreEvak\hopeful\balanced_tokenizn.py", line 552, in _setup
+    for k, v in HINGLISH_LEXICON.items() if str(k).strip()},
+                ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'frozenset' object has no attribute 'items'
+2026-06-20 20:58:36 INFO     api — Starting analysis job | job_id='6625d3ccb0ea40889de8fd3251a6367a' modules=['phonetic_normalization', 'script_unification', 'language_identification_tagging']
+2026-06-20 20:58:41 INFO     model_manager — ModelManager initialized on device=cpu
+2026-06-20 21:01:00 INFO     api — Starting model inference job | job_id='670072f373d944c59ca4bba4ccc5a99c' models=['indicbert'] modules=['phonetic_normalization', 'script_unification', 'language_identification_tagging']
+2026-06-20 21:01:07 ERROR    api — Model inference job failed | error="cannot import name '_summarize_dataset_model_metrics' from 'model_evaluator' (D:\\PreEvak\\hopeful\\model_evaluator.py)" job_id='670072f373d944c59ca4bba4ccc5a99c'
+Traceback (most recent call last):
+  File "D:\PreEvak\hopeful\api.py", line 339, in _run_model_inference_job
+    from model_evaluator import _summarize_dataset_model_metrics
+ImportError: cannot import name '_summarize_dataset_model_metrics' from 'model_evaluator' (D:\PreEvak\hopeful\model_evaluator.py)
+2026-06-20 21:07:00 INFO     job_manager — Recovered 33 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-20 21:07:00 INFO     api — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-20 21:07:42 INFO     api — Starting analysis job | job_id='9da2f09523ab4e6ea59853891a151f3b' modules=['phonetic_normalization', 'script_unification', 'language_identification_tagging']
+2026-06-20 21:07:48 INFO     model_manager — ModelManager initialized on device=cpu
+2026-06-20 21:18:11 INFO     model_manager — load_sentence_transformer started | model_name='paraphrase-multilingual-MiniLM-L12-v2' operation='load_sentence_transformer'
+2026-06-20 21:18:12 INFO     sentence_transformers.base.model — Loading SentenceTransformer model from sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2.
+2026-06-20 21:18:19 INFO     model_manager — load_sentence_transformer completed | elapsed_seconds=7.7948 model_name='paraphrase-multilingual-MiniLM-L12-v2' operation='load_sentence_transformer'
+2026-06-20 21:19:13 INFO     api — Starting model inference job | job_id='80fd53ef61f9457fac3696e3cc3551fb' models=['xlmr'] modules=['phonetic_normalization', 'script_unification', 'language_identification_tagging']
+2026-06-20 21:19:16 INFO     model_manager — load_encoder started | model_name='xlm-roberta-base' operation='load_encoder'
+2026-06-20 22:30:28 INFO     job_manager — Recovered 35 job(s) from disk on startup | jobs_dir='D:\\PreEvak\\hopeful\\analysis_jobs'
+2026-06-20 22:30:29 INFO     api — API startup complete | hf_cache_dir='D:/HF_CACHE' jobs_recovered=0
+2026-06-20 22:31:06 INFO     api — Starting analysis job | job_id='6bb74905cbbd49ea816b4a697a29fec7' modules=['phonetic_normalization', 'language_aware_normalization']
+2026-06-20 22:31:10 INFO     model_manager — ModelManager initialized on device=cpu
+2026-06-20 22:31:25 INFO     api — Starting model inference job | job_id='2156dbc27f0a405c93405e1e8b8d1185' models=['nllb'] modules=['phonetic_normalization', 'language_aware_normalization']
+2026-06-20 22:31:28 INFO     model_manager — load_encoder started | model_name='facebook/nllb-200-distilled-600M' operation='load_encoder'
+2026-06-20 22:35:15 INFO     model_manager — load_encoder completed | elapsed_seconds=226.9843 model_name='facebook/nllb-200-distilled-600M' operation='load_encoder'
+2026-06-20 22:42:05 INFO     model_manager — load_sentence_transformer started | model_name='paraphrase-multilingual-MiniLM-L12-v2' operation='load_sentence_transformer'
+2026-06-20 22:42:07 INFO     sentence_transformers.base.model — Loading SentenceTransformer model from sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2.
+2026-06-20 22:42:14 INFO     model_manager — load_sentence_transformer completed | elapsed_seconds=8.0735 model_name='paraphrase-multilingual-MiniLM-L12-v2' operation='load_sentence_transformer'
+2026-06-20 22:54:35 INFO     api — Starting analysis job | job_id='5f3d2548bf7249539842380b6215c480' modules=['phonetic_normalization', 'language_aware_normalization']
+2026-06-20 23:04:31 INFO     api — Starting analysis job | job_id='f424c560b88e4a0dbae09817dd98891f' modules=['phonetic_normalization', 'language_aware_normalization', 'language_identification_tagging', 'switch_point_encoding']
+2026-06-20 23:25:11 INFO     api — Starting analysis job | job_id='aa0190ebec7342bdb6c9ed39820d6ac3' modules=['phonetic_normalization', 'language_aware_normalization', 'language_identification_tagging', 'switch_point_encoding']

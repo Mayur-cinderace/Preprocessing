@@ -1,0 +1,1 @@
+{"status": "running", "progress": 5, "message": "Computing information theory (task-relevant info proxy)", "modules": ["phonetic_normalization", "script_unification", "language_identification_tagging"], "dataset_name": "upload_6625d3ccb0ea40889de8fd3251a6367a", "uploaded_filename": "upload_6625d3ccb0ea40889de8fd3251a6367a.csv", "batch_size": 32, "include_spac": true}
